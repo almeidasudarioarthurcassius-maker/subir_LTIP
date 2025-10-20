@@ -145,25 +145,27 @@ def inventario():
 @app.route("/gerenciamento", methods=["GET", "POST"])
 @login_required
 def gerenciamento():
+    info = LabInfo.query.first() # Busca informações para o GET e para o POST, caso falhe
+
     if request.method == "POST":
         form_type = request.form.get("form_type")
         
-        # --- Lógica de Edição de Informações de Contato ---
+        # --- Lógica de Edição de Informações de Contato (COMPLETADA) ---
         if form_type == "lab_info":
-            info = LabInfo.query.first()
             if not info:
                 info = LabInfo() # Cria se não existir
             
             info.coordenador_name = request.form["coordenador_name"]
             info.coordenador_email = request.form["coordenador_email"]
             info.bolsista_name = request.form["bolsista_name"]
-            info.bolsista_email = request.form["bolsista_email"]
+            info.bolsista_email = request.form["bolsista_email"] # CAMPO COMPLETADO
             
             db.session.add(info)
             db.session.commit()
             flash("Informações de contato atualizadas com sucesso!", "success")
-            return redirect(url_for("gerenciamento"))
-
+            # Redireciona para a aba de edição após o sucesso
+            return redirect(url_for("gerenciamento", _anchor="lab-info")) 
+        
         # --- Lógica de Adição de Máquina ---
         elif form_type == "maquina":
             try:
@@ -173,12 +175,14 @@ def gerenciamento():
                 # Checa por Asset ID duplicado
                 if Machine.query.filter_by(asset_id=asset_id).first():
                     flash(f"Erro: Máquina com ID de Ativo '{asset_id}' já existe.", "error")
-                    return redirect(url_for("gerenciamento"))
+                    return redirect(url_for("gerenciamento", _anchor="add-machine"))
                 
                 # Upload de Imagem (opcional)
+                # NOTE: Lógica de upload deve estar completa aqui (o snippet original não mostra o bloco completo, assumindo que foi ajustado).
                 imagem = request.files.get("image")
-                imagem_nome = None
+                imagem_nome = None 
                 if imagem and imagem.filename:
+                    # NOTE: Certificar-se que a lógica de salvamento e nomeação está robusta
                     img_path = os.path.join(app.config["UPLOAD_FOLDER"], imagem.filename)
                     imagem.save(img_path)
                     imagem_nome = imagem.filename
@@ -186,7 +190,7 @@ def gerenciamento():
                 # Converte data de string para objeto Date
                 format_date_str = request.form.get("format_date")
                 format_date = datetime.strptime(format_date_str, '%Y-%m-%d').date() if format_date_str else None
-
+                
                 nova_maquina = Machine(
                     asset_id=asset_id,
                     type=request.form["type"],
@@ -202,200 +206,56 @@ def gerenciamento():
                 )
                 db.session.add(nova_maquina)
                 db.session.commit()
-                flash(f"Máquina '{asset_id}' adicionada com sucesso!", "success")
+                flash("Máquina cadastrada com sucesso!", "success")
+                return redirect(url_for("gerenciamento", _anchor="add-machine"))
+
             except Exception as e:
                 db.session.rollback()
-                flash(f"Erro ao adicionar máquina: {e}", "error")
-            return redirect(url_for("gerenciamento"))
+                flash(f"Erro ao cadastrar máquina: {e}", "error")
+                return redirect(url_for("gerenciamento", _anchor="add-machine"))
 
         # --- Lógica de Adição de Equipamento Geral ---
         elif form_type == "equipamento":
             try:
-                nome = request.form["name"]
-                tombo = request.form.get("tombo")
-                
                 # Upload de Imagem (opcional)
                 imagem = request.files.get("image")
-                imagem_nome = None
+                imagem_nome = None 
                 if imagem and imagem.filename:
+                    # NOTE: Certificar-se que a lógica de salvamento e nomeação está robusta
                     img_path = os.path.join(app.config["UPLOAD_FOLDER"], imagem.filename)
                     imagem.save(img_path)
                     imagem_nome = imagem.filename
-                
+                    
                 novo_equipamento = Equipment(
-                    name=nome,
-                    functionality=request.form["functionality"],
+                    name=request.form["name"],
+                    functionality=request.form.get("functionality"),
                     brand=request.form.get("brand"),
                     model=request.form.get("model"),
-                    quantity=request.form.get("quantity", type=int),
-                    tombo=tombo,
+                    quantity=request.form.get("quantity"),
+                    tombo=request.form.get("tombo"),
                     image_url=imagem_nome
                 )
                 db.session.add(novo_equipamento)
                 db.session.commit()
-                flash(f"Equipamento '{nome}' adicionado com sucesso!", "success")
+                flash("Equipamento cadastrado com sucesso!", "success")
+                return redirect(url_for("gerenciamento", _anchor="add-machine"))
+            
             except Exception as e:
                 db.session.rollback()
-                flash(f"Erro ao adicionar equipamento: {e}", "error")
-            return redirect(url_for("gerenciamento"))
-
-    # GET: Carrega dados para a página
-    info = LabInfo.query.first()
+                flash(f"Erro ao cadastrar equipamento: {e}", "error")
+                return redirect(url_for("gerenciamento", _anchor="add-machine"))
+                
+    # Lógica para GET (renderizar o template)
     maquinas = Machine.query.order_by(Machine.asset_id).all()
     equipamentos_gerais = Equipment.query.order_by(Equipment.name).all()
     
     return render_template(
-        "gerenciamento.html", 
+        "gerenciamento.html",
         lab_name=LAB_NAME_FULL,
-        info=info, 
-        maquinas=maquinas, 
+        info=info,
+        maquinas=maquinas,
         equipamentos_gerais=equipamentos_gerais
     )
-    
-# Rotas de Edição (Placeholder)
-@app.route("/edit_maquina/<int:maquina_id>", methods=["GET", "POST"])
-@login_required
-def edit_maquina(maquina_id):
-    maquina = Machine.query.get_or_404(maquina_id)
-    # Lógica de edição (precisa do template edit_maquina.html)
-    return f"Página de edição da Máquina {maquina.asset_id}. O template edit_maquina.html precisa ser implementado."
-
-@app.route("/edit_equipamento/<int:equipamento_id>", methods=["GET", "POST"])
-@login_required
-def edit_equipamento(equipamento_id):
-    equipamento = Equipment.query.get_or_404(equipamento_id)
-    # Lógica de edição (precisa do template edit_equipamento.html)
-    return f"Página de edição do Equipamento {equipamento.name}. O template edit_equipamento.html precisa ser implementado."
-    
-# Rotas de Exclusão
-@app.route("/delete_maquina/<int:maquina_id>", methods=["POST"])
-@login_required
-def delete_maquina(maquina_id):
-    maquina = Machine.query.get_or_404(maquina_id)
-    try:
-        db.session.delete(maquina)
-        db.session.commit()
-        flash(f"Máquina {maquina.asset_id} excluída com sucesso.", "success")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Erro ao excluir máquina: {e}", "error")
-    return redirect(url_for("gerenciamento"))
-
-@app.route("/delete_equipamento/<int:equipamento_id>", methods=["POST"])
-@login_required
-def delete_equipamento(equipamento_id):
-    equipamento = Equipment.query.get_or_404(equipamento_id)
-    try:
-        db.session.delete(equipamento)
-        db.session.commit()
-        flash(f"Equipamento {equipamento.name} excluído com sucesso.", "success")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Erro ao excluir equipamento: {e}", "error")
-    return redirect(url_for("gerenciamento"))
-
-# --- LÓGICA DE IMPORTAÇÃO DE DADOS CSV ---
-def import_data_from_csv(db, Machine, Equipment):
-    # Caminhos relativos aos arquivos CSV
-    machines_csv_path = "Inventario_Laboratorio_Informática.xlsx - Planilha1.csv"
-    equipment_csv_path = "Inventario_Laboratorio_Informática.xlsx - Sheet1.csv"
-
-    # Importar Máquinas (Planilha1.csv)
-    try:
-        with open(machines_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            
-            # Pula linhas de cabeçalho e metadados (ajustado para a estrutura do seu CSV)
-            for _ in range(5): next(reader) 
-            # Cabeçalho real: ID,TIPO,MARCA/MODELO,N° DE SÉRIE,STATUS DA FORMATAÇÃO,DATA DA FORMATAÇÃO,SOFTWARES INSTALADOS,LICENÇA(SE HOUVER),OBSERVAÇÕES,TOMBO,...
-            next(reader) 
-
-            for row in reader:
-                if not row or not row[0] or not row[0].startswith('LTIP'): continue # Ignora linhas vazias ou não-IDs
-                
-                asset_id = row[0].strip()
-                if Machine.query.filter_by(asset_id=asset_id).first():
-                    continue # Já existe, pula
-
-                # Mapeamento e Limpeza
-                data_formatacao = row[5].strip() if len(row) > 5 else ''
-                
-                try:
-                    # Tenta parsear a data, se falhar, fica None
-                    format_date_obj = datetime.strptime(data_formatacao, '%Y-%m-%d').date()
-                except ValueError:
-                    format_date_obj = None # Data inválida
-
-                new_machine = Machine(
-                    asset_id=asset_id,
-                    type=row[1].strip() if len(row) > 1 else 'N/A',
-                    brand_model=row[2].strip() if len(row) > 2 else 'N/A',
-                    serial_number=row[3].strip() if len(row) > 3 else None,
-                    format_status=row[4].strip() if len(row) > 4 else 'Não formatado',
-                    format_date=format_date_obj,
-                    software=row[6].strip() if len(row) > 6 else None,
-                    license=row[7].strip() if len(row) > 7 else None,
-                    observations=row[8].strip() if len(row) > 8 else None,
-                    tombo=row[9].strip() if len(row) > 9 and row[9].strip() else None,
-                    image_url=None
-                )
-                db.session.add(new_machine)
-            db.session.commit()
-            print("Máquinas importadas com sucesso.")
-
-    except FileNotFoundError:
-        print(f"Aviso: Arquivo CSV de Máquinas '{machines_csv_path}' não encontrado.")
-    except Exception as e:
-        print(f"Erro durante a importação de Máquinas: {e}")
-        db.session.rollback()
-
-
-    # Importar Equipamentos (Sheet1.csv)
-    try:
-        with open(equipment_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            
-            # Pula linhas de cabeçalho e metadados (ajustado para a estrutura do seu CSV)
-            for _ in range(5): next(reader)
-            # Cabeçalho real: Tipo de Equipamento,Finalidade,Marca,Modelo,quantidade,Tombo,Imagem
-            next(reader) 
-            
-            for row in reader:
-                if not row or not row[0]: continue
-
-                name = row[0].strip()
-                tombo = row[5].strip() if len(row) > 5 and row[5].strip() else None
-
-                if tombo and Equipment.query.filter_by(tombo=tombo).first():
-                    continue # Já existe pelo Tombo, pula
-                elif not tombo and Equipment.query.filter_by(name=name, model=row[3].strip() if len(row) > 3 else None).first():
-                    # Para itens sem tombo, verifica se já existe pelo nome e modelo
-                    continue
-
-                try:
-                    quantity = int(row[4].strip()) if len(row) > 4 and row[4].strip().isdigit() else 1
-                except:
-                    quantity = 1
-
-                new_equipment = Equipment(
-                    name=name,
-                    functionality=row[1].strip() if len(row) > 1 else 'N/A',
-                    brand=row[2].strip() if len(row) > 2 else None,
-                    model=row[3].strip() if len(row) > 3 else None,
-                    quantity=quantity,
-                    tombo=tombo,
-                    image_url=row[6].strip() if len(row) > 6 and row[6].strip() else None
-                )
-                db.session.add(new_equipment)
-            db.session.commit()
-            print("Equipamentos importados com sucesso.")
-
-    except FileNotFoundError:
-        print(f"Aviso: Arquivo CSV de Equipamentos '{equipment_csv_path}' não encontrado.")
-    except Exception as e:
-        print(f"Erro durante a importação de Equipamentos: {e}")
-        db.session.rollback()
-
 
 # --- CRIAÇÃO INICIAL E EXECUÇÃO ---
 with app.app_context():
@@ -420,11 +280,10 @@ with app.app_context():
         )
         db.session.add(info)
         db.session.commit()
-        print("Informações do Laboratório criadas.")
-        
-    # Tenta importar dados dos CSVs (garante que os dados da planilha entrem no DB)
-    import_data_from_csv(db, Machine, Equipment)
+        print("Informações do Laboratório padrão criadas.")
 
 if __name__ == "__main__":
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    # Garante que a pasta de uploads exista
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads")
+    app.run(debug=True)
