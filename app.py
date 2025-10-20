@@ -48,7 +48,6 @@ class LabInfo(db.Model):
 # --------------------------------------------------------
 @login_manager.user_loader
 def load_user(user_id):
-    # Forma moderna de buscar o usuário no Flask-SQLAlchemy 3.x
     return db.session.get(User, int(user_id))
 
 # --------------------------------------------------------
@@ -56,14 +55,12 @@ def load_user(user_id):
 # --------------------------------------------------------
 
 # Rota para servir os arquivos de upload (imagens)
-# ESSENCIAL: Permite que o navegador acesse arquivos dentro da pasta 'uploads'.
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route("/")
 def index():
-    # Esta é a única e correta rota 'index'
     info = LabInfo.query.first()
     equipamentos = Equipment.query.all()
     return render_template("index.html", info=info, equipamentos=equipamentos)
@@ -75,7 +72,6 @@ def login():
         if user and user.password == request.form["password"]:
             login_user(user)
             flash("Login realizado com sucesso!", "success")
-            # Adicionada lógica de redirecionamento mais inteligente após o login
             if user.role in ["admin", "bolsista"]:
                 return redirect(url_for("gerenciamento"))
             return redirect(url_for("index"))
@@ -98,7 +94,6 @@ def inventario():
 @app.route("/gerenciamento")
 @login_required
 def gerenciamento():
-    # Verifica permissão para acesso à página
     if current_user.role not in ["admin", "bolsista"]:
         flash("Acesso negado. Apenas administradores e bolsistas.", "warning")
         return redirect(url_for("index"))
@@ -106,6 +101,32 @@ def gerenciamento():
     equipamentos = Equipment.query.all()
     info = LabInfo.query.first()
     return render_template("gerenciamento.html", equipamentos=equipamentos, info=info)
+
+# NOVA ROTA: Edição das Informações de Contato
+@app.route("/editar_info_laboratorio", methods=["POST"])
+@login_required
+def editar_info_laboratorio():
+    # Permite que tanto admin quanto bolsista editem
+    if current_user.role not in ["admin", "bolsista"]:
+        flash("Permissão negada para editar as informações do laboratório.", "warning")
+        return redirect(url_for("gerenciamento"))
+    
+    # Busca o registro LabInfo (deve sempre existir um)
+    info = LabInfo.query.first()
+    if not info:
+        # Cria um novo registro se não existir por algum motivo
+        info = LabInfo()
+        db.session.add(info)
+        
+    # Atualiza os campos com os dados do formulário
+    info.coordenador_name = request.form["coordenador_name"]
+    info.coordenador_email = request.form["coordenador_email"]
+    info.bolsista_name = request.form["bolsista_name"]
+    info.bolsista_email = request.form["bolsista_email"]
+
+    db.session.commit()
+    flash("Informações do laboratório atualizadas com sucesso!", "success")
+    return redirect(url_for("gerenciamento"))
 
 @app.route("/adicionar_equipamento", methods=["POST"])
 @login_required
@@ -119,7 +140,6 @@ def adicionar_equipamento():
     marca = request.form["brand"]
     modelo = request.form["model"]
     
-    # Tratamento de erro para garantir que quantity seja um inteiro
     try:
         quantidade = int(request.form["quantity"])
     except ValueError:
@@ -151,16 +171,16 @@ def adicionar_equipamento():
 # CRIAÇÃO INICIAL DO BANCO E POPULAÇÃO
 # --------------------------------------------------------
 with app.app_context():
-    # Garante que a pasta de uploads exista
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    
-    # Cria as tabelas
     db.create_all()
     
-    # Popula com dados iniciais se o banco estiver vazio
     if not LabInfo.query.first():
-        admin = User(username="admin", password="admin", role="admin")
-        bolsista = User(username="bolsista", password="1234", role="bolsista")
+        
+        # NOVOS LOGINS DEFINIDOS AQUI!
+        admin = User(username="rendeiro2025", password="admLTIP2025", role="admin")
+        bolsista = User(username="arthur2006", password="LTIP2025", role="bolsista")
+        # FIM DOS NOVOS LOGINS
+        
         visitante = User(username="visitante", password="0000", role="visitante")
         db.session.add_all([admin, bolsista, visitante])
         
@@ -172,7 +192,6 @@ with app.app_context():
         )
         db.session.add(info)
         
-        # Equipamento de Exemplo para não iniciar vazio
         equipamento_exemplo = Equipment(
             name="Exemplo de Equipamento",
             functionality="Medição e análise",
