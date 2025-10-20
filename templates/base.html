@@ -1,1 +1,64 @@
-<placeholder for templates/base.html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LTIP Inventory System{% endblock %}</title>
+    <!-- Incluindo Tailwind CSS para um estilo moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo customizado para mensagens flash */
+        .flash-success { background-color: #d1e7dd; color: #0f5132; }
+        .flash-danger { background-color: #f8d7da; color: #842029; }
+        .flash-info { background-color: #cff4fc; color: #055160; }
+        .flash-warning { background-color: #fff3cd; color: #664d03; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-indigo-700 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="text-white text-2xl font-extrabold tracking-wider">LTIP</a>
+            <div class="space-x-4 flex items-center">
+                <a href="{{ url_for('index') }}" class="text-indigo-200 hover:text-white transition duration-200">Home</a>
+                <a href="{{ url_for('inventario') }}" class="text-indigo-200 hover:text-white transition duration-200">Inventário</a>
+                
+                {% if current_user.is_authenticated and current_user.role in ['admin', 'bolsista'] %}
+                    <a href="{{ url_for('gerenciamento') }}" class="text-yellow-300 hover:text-white transition duration-200">Gerenciamento</a>
+                    <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-full transition duration-200">Sair ({{ current_user.username }})</a>
+                {% elif current_user.is_authenticated %}
+                    <span class="text-indigo-200">Bem-vindo, {{ current_user.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-full transition duration-200">Sair</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-full transition duration-200">Entrar</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mensagens Flash -->
+    <div class="container mx-auto mt-4 p-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-3 mb-3 rounded-lg text-sm flash-{{ category }} shadow-md" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white text-center p-4 mt-8">
+        <p>&copy; 2025 LTIP Laboratory. Todos os direitos reservados.</p>
+    </footer>
+
+</body>
+</html>
