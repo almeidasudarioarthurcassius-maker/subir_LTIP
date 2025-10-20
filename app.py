@@ -114,8 +114,7 @@ def adicionar_equipamento():
 # --------------------------------------------------------
 # CRIAÇÃO INICIAL
 # --------------------------------------------------------
-@app.before_first_request
-def create_tables():
+with app.app_context():
     db.create_all()
     if not User.query.first():
         admin = User(username="admin", password="admin", role="admin")
