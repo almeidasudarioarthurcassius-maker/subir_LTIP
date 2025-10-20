@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import os
 import csv
-from datetime import datetime
+from datetime import datetime # ESTA IMPORTAÇÃO É NECESSÁRIA
 
 # --- Configurações Iniciais ---
 app = Flask(__name__)
@@ -22,6 +22,12 @@ login_manager.login_view = "login"
 
 # Define o nome completo do laboratório como uma constante
 LAB_NAME_FULL = "LABORATÓRIO DE TECNOLOGIA DA INFORMAÇÃO DO PROFÁGUA - LTIP"
+
+# --- NOVO: CONTEXT PROCESSOR PARA DATETIME ---
+# Isso garante que a função datetime esteja disponível em TODOS os templates Jinja
+@app.context_processor
+def inject_now():
+    return {'datetime': datetime}
 
 
 # --- MODELOS ---
@@ -315,6 +321,7 @@ def import_data_from_csv(db, Machine, Equipment):
                 data_formatacao = row[5].strip() if len(row) > 5 else ''
                 
                 try:
+                    # Tenta parsear a data, se falhar, fica None
                     format_date_obj = datetime.strptime(data_formatacao, '%Y-%m-%d').date()
                 except ValueError:
                     format_date_obj = None # Data inválida
