@@ -1,13 +1,69 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTIP Laboratory</title>
-</head>
-<body>
-    <h1>Laboratório de Tecnologia e Inovação em Processos</h1>
-    <p>Bem-vindo ao sistema do LTIP.</p>
-    <a href="/login">Entrar</a>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}LTIP Laboratory{% endblock %}
+
+{% block content %}
+<header class="text-center py-10 bg-white shadow-sm">
+    <h1 class="text-4xl font-bold text-gray-800">
+        Laboratório de Tecnologia e Inovação em Processos
+    </h1>
+    <p class="mt-2 text-xl text-gray-600">
+        Bem-vindo ao sistema de inventário.
+    </p>
+</header>
+
+<div class="container mx-auto p-6">
+    <!-- Seção de Contato/Info do Laboratório -->
+    <h2 class="text-2xl font-semibold text-indigo-600 mb-4 border-b pb-2">Informações de Contato</h2>
+    {% if info %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="bg-white p-6 shadow-lg rounded-xl transition duration-300 hover:shadow-xl">
+            <h3 class="text-xl font-medium text-gray-700 mb-2 border-b">Coordenador</h3>
+            <p class="text-gray-600"><strong>Nome:</strong> {{ info.coordenador_name }}</p>
+            <p class="text-gray-600"><strong>Email:</strong> <a href="mailto:{{ info.coordenador_email }}" class="text-blue-500 hover:text-blue-700">{{ info.coordenador_email }}</a></p>
+        </div>
+        <div class="bg-white p-6 shadow-lg rounded-xl transition duration-300 hover:shadow-xl">
+            <h3 class="text-xl font-medium text-gray-700 mb-2 border-b">Bolsista</h3>
+            <p class="text-gray-600"><strong>Nome:</strong> {{ info.bolsista_name }}</p>
+            <p class="text-gray-600"><strong>Email:</strong> <a href="mailto:{{ info.bolsista_email }}" class="text-blue-500 hover:text-blue-700">{{ info.bolsista_email }}</a></p>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-gray-500 mb-10 p-4 bg-yellow-100 rounded-lg">Informações do laboratório não carregadas.</p>
+    {% endif %}
+
+    <!-- Seção de Inventário (Destaque) -->
+    <h2 class="text-2xl font-semibold text-indigo-600 mb-6 border-b pb-2">Equipamentos em Destaque</h2>
+    
+    {% if equipamentos %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for equipamento in equipamentos[:3] %}
+        <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-100 transform hover:scale-[1.02] transition duration-300">
+            {% if equipamento.image %}
+                <!-- Acessa a rota /uploads/ para carregar a imagem -->
+                <img src="{{ url_for('uploaded_file', filename=equipamento.image) }}" alt="{{ equipamento.name }}" class="w-full h-48 object-cover">
+            {% else %}
+                <div class="w-full h-48 bg-indigo-50 flex items-center justify-center text-indigo-400 text-sm font-semibold">
+                    [Sem Imagem Disponível]
+                </div>
+            {% endif %}
+            <div class="p-5">
+                <h3 class="text-xl font-bold text-gray-800 truncate">{{ equipamento.name }}</h3>
+                <p class="text-sm text-gray-600 mt-1"><strong>Marca:</strong> {{ equipamento.brand }}</p>
+                <p class="text-sm text-gray-600"><strong>Modelo:</strong> {{ equipamento.model }}</p>
+                <p class="text-sm text-gray-600"><strong>Quantidade:</strong> {{ equipamento.quantity }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-10">
+        <a href="{{ url_for('inventario') }}" class="inline-block bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:translate-y-[-2px]">
+            Ver Inventário Completo
+        </a>
+    </div>
+    {% else %}
+    <p class="text-gray-500 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-200">Nenhum equipamento cadastrado no momento. Faça login para adicionar.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
