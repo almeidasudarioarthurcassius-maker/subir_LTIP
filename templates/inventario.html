@@ -1,54 +1,94 @@
-{% extends "base.html" %}
+
 
 {% block title %}Inventário Completo - LTIP{% endblock %}
 
 {% block content %}
 <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold text-indigo-700 mb-8 border-b pb-2">Inventário Completo de Equipamentos</h1>
+    <h1 class="text-4xl font-extrabold text-indigo-700 mb-10 text-center font-inter">Inventário Geral do Laboratório LTIP</h1>
 
-    {% if equipamentos %}
-    <div class="bg-white shadow-xl rounded-xl overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-indigo-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagem</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tombo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca/Modelo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Funcionalidade</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
-                {% for equipamento in equipamentos %}
-                <tr class="hover:bg-gray-50 transition duration-150">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {% if equipamento.image %}
-                            <img src="{{ url_for('uploaded_file', filename=equipamento.image) }}" alt="{{ equipamento.name }}" class="h-12 w-12 rounded-lg object-cover shadow-sm">
-                        {% else %}
-                            <div class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
-                                S/I
-                            </div>
-                        {% endif %}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ equipamento.name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-mono">{{ equipamento.tombo }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ equipamento.brand }} / {{ equipamento.model }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ equipamento.functionality }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center text-lg font-bold text-green-600">{{ equipamento.quantity }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="text-center p-10 bg-yellow-50 border border-yellow-200 rounded-xl">
-        <p class="text-lg text-yellow-700 font-semibold">Nenhum equipamento cadastrado no inventário.</p>
-        <p class="text-sm text-yellow-600 mt-2">Se você é um administrador ou bolsista, faça login para adicionar novos itens.</p>
-    </div>
-    {% endif %}
+    <!-- Tabela 1: Controle de Máquinas (Computadores e Notebooks) -->
+    <section id="maquinas" class="mb-12">
+        <h2 class="text-3xl font-bold text-green-600 mb-6 border-b pb-2 font-inter">Controle de Máquinas (PCs/Notebooks)</h2>
+        <p class="mb-4 text-gray-600 font-inter">Detalhes dos equipamentos de processamento, como computadores e notebooks.</p>
+        
+        {% if maquinas %}
+        <div class="bg-white shadow-xl rounded-xl overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-green-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Marca/Modelo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Status Formatação</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Data Formatação</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Tombo</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for maquina in maquinas %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-700 font-inter">{{ maquina.asset_id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-inter">{{ maquina.type | capitalize }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-inter">{{ maquina.brand_model }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {% if maquina.format_status == 'Formatado' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 font-inter">Formatado</span>
+                            {% elif maquina.format_status == 'Em andamento' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 font-inter">Em andamento</span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 font-inter">{{ maquina.format_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-inter">
+                            {{ maquina.format_date.strftime('%d/%m/%Y') if maquina.format_date else 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-mono font-inter">{{ maquina.tombo or 'S/ Tombo' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 p-4 bg-yellow-50 rounded-lg font-inter">Nenhuma máquina cadastrada no momento.</p>
+        {% endif %}
+    </section>
+
+    <!-- Tabela 2: Equipamentos e Infraestrutura Geral -->
+    <section id="equipamentos-gerais">
+        <h2 class="text-3xl font-bold text-indigo-600 mb-6 border-b pb-2 font-inter">Equipamentos e Infraestrutura Geral</h2>
+        <p class="mb-4 text-gray-600 font-inter">Itens como ferramentas, mobiliário e periféricos.</p>
+        
+        {% if equipamentos_gerais %}
+        <div class="bg-white shadow-xl rounded-xl overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-indigo-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Tipo de Equipamento</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Marca/Modelo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Finalidade</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Qtd</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider font-inter">Tombo</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for equipamento in equipamentos_gerais %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-inter">{{ equipamento.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-inter">
+                            {{ equipamento.brand or 'N/A' }} / {{ equipamento.model or 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate font-inter">{{ equipamento.functionality }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-lg font-bold text-indigo-600 font-inter">{{ equipamento.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-inter">{{ equipamento.tombo or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 p-4 bg-yellow-50 rounded-lg font-inter">Nenhum equipamento geral cadastrado no momento.</p>
+        {% endif %}
+    </section>
 
 </div>
 {% endblock %}
