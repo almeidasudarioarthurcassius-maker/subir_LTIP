@@ -12,6 +12,21 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory
+import os
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'chave-segura-ltip'
+
+# Caminho absoluto para os templates e uploads
+app.template_folder = os.path.join(os.path.dirname(__file__), 'templates')
+app.static_folder = os.path.join(os.path.dirname(__file__), 'static')
+
+# Rota inicial
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 # --------------------------------------------------------
 # MODELOS
 # --------------------------------------------------------
