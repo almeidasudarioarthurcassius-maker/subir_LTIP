@@ -1,34 +1,24 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import os
 
+# --------------------------------------------------------
+# CONFIGURAÇÃO DO APP
+# --------------------------------------------------------
 app = Flask(__name__)
-app.secret_key = "ltip_secret_key"
+# Chave secreta unificada para maior segurança
+app.secret_key = 'chave-segura-ltip' 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ltip.db"
 app.config["UPLOAD_FOLDER"] = "uploads"
 
+# Configuração para login
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory
-import os
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'chave-segura-ltip'
-
-# Caminho absoluto para os templates e uploads
-app.template_folder = os.path.join(os.path.dirname(__file__), 'templates')
-app.static_folder = os.path.join(os.path.dirname(__file__), 'static')
-
-# Rota inicial
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 # --------------------------------------------------------
-# MODELOS
+# MODELOS (MODELS)
 # --------------------------------------------------------
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,7 +34,7 @@ class Equipment(db.Model):
     model = db.Column(db.String(120))
     quantity = db.Column(db.Integer)
     tombo = db.Column(db.String(50))
-    image = db.Column(db.String(120))
+    image = db.Column(db.String(120)) 
 
 class LabInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,17 +44,26 @@ class LabInfo(db.Model):
     bolsista_email = db.Column(db.String(120))
 
 # --------------------------------------------------------
-# LOGIN
+# LOGIN MANAGER
 # --------------------------------------------------------
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    # Forma moderna de buscar o usuário no Flask-SQLAlchemy 3.x
+    return db.session.get(User, int(user_id))
 
 # --------------------------------------------------------
-# ROTAS
+# ROTAS (ROUTES)
 # --------------------------------------------------------
+
+# Rota para servir os arquivos de upload (imagens)
+# ESSENCIAL: Permite que o navegador acesse arquivos dentro da pasta 'uploads'.
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route("/")
 def index():
+    # Esta é a única e correta rota 'index'
     info = LabInfo.query.first()
     equipamentos = Equipment.query.all()
     return render_template("index.html", info=info, equipamentos=equipamentos)
@@ -76,6 +75,9 @@ def login():
         if user and user.password == request.form["password"]:
             login_user(user)
             flash("Login realizado com sucesso!", "success")
+            # Adicionada lógica de redirecionamento mais inteligente após o login
+            if user.role in ["admin", "bolsista"]:
+                return redirect(url_for("gerenciamento"))
             return redirect(url_for("index"))
         else:
             flash("Usuário ou senha incorretos.", "danger")
@@ -96,26 +98,44 @@ def inventario():
 @app.route("/gerenciamento")
 @login_required
 def gerenciamento():
+    # Verifica permissão para acesso à página
+    if current_user.role not in ["admin", "bolsista"]:
+        flash("Acesso negado. Apenas administradores e bolsistas.", "warning")
+        return redirect(url_for("index"))
+        
     equipamentos = Equipment.query.all()
-    return render_template("gerenciamento.html", equipamentos=equipamentos)
+    info = LabInfo.query.first()
+    return render_template("gerenciamento.html", equipamentos=equipamentos, info=info)
 
 @app.route("/adicionar_equipamento", methods=["POST"])
 @login_required
 def adicionar_equipamento():
+    if current_user.role not in ["admin", "bolsista"]:
+        flash("Permissão negada para adicionar equipamentos.", "warning")
+        return redirect(url_for("gerenciamento"))
+        
     nome = request.form["name"]
     func = request.form["functionality"]
     marca = request.form["brand"]
     modelo = request.form["model"]
-    quantidade = request.form["quantity"]
+    
+    # Tratamento de erro para garantir que quantity seja um inteiro
+    try:
+        quantidade = int(request.form["quantity"])
+    except ValueError:
+        quantidade = 0
+        
     tombo = request.form["tombo"]
-    imagem = request.files["image"]
-
-    if imagem:
+    
+    imagem_nome = None
+    if "image" in request.files and request.files["image"].filename != "":
+        imagem = request.files["image"]
+        
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+        
         img_path = os.path.join(app.config["UPLOAD_FOLDER"], imagem.filename)
         imagem.save(img_path)
         imagem_nome = imagem.filename
-    else:
-        imagem_nome = None
 
     novo = Equipment(
         name=nome, functionality=func, brand=marca,
@@ -126,16 +146,24 @@ def adicionar_equipamento():
     flash("Equipamento adicionado com sucesso!", "success")
     return redirect(url_for("gerenciamento"))
 
+
 # --------------------------------------------------------
-# CRIAÇÃO INICIAL
+# CRIAÇÃO INICIAL DO BANCO E POPULAÇÃO
 # --------------------------------------------------------
 with app.app_context():
+    # Garante que a pasta de uploads exista
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    
+    # Cria as tabelas
     db.create_all()
-    if not User.query.first():
+    
+    # Popula com dados iniciais se o banco estiver vazio
+    if not LabInfo.query.first():
         admin = User(username="admin", password="admin", role="admin")
         bolsista = User(username="bolsista", password="1234", role="bolsista")
         visitante = User(username="visitante", password="0000", role="visitante")
         db.session.add_all([admin, bolsista, visitante])
+        
         info = LabInfo(
             coordenador_name="Coordenador LTIP",
             coordenador_email="coordenador@uea.edu.br",
@@ -143,8 +171,21 @@ with app.app_context():
             bolsista_email="bolsista@uea.edu.br",
         )
         db.session.add(info)
+        
+        # Equipamento de Exemplo para não iniciar vazio
+        equipamento_exemplo = Equipment(
+            name="Exemplo de Equipamento",
+            functionality="Medição e análise",
+            brand="ExemploCorp",
+            model="M100",
+            quantity=1,
+            tombo="LTIP-EX01",
+            image=None
+        )
+        db.session.add(equipamento_exemplo)
+        
         db.session.commit()
 
+# O bloco principal (para rodar localmente com 'python app.py')
 if __name__ == "__main__":
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.run(debug=True, host="0.0.0.0", port=5000)
