@@ -37,6 +37,16 @@
             background-color: #111827; /* Dark mode background */
             color: #f9fafb; /* Light text */
         }
+        /* Estilo para links de tabulação */
+        .tab-link.active {
+            border-color: #4f46e5; /* primary color */
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .dark .tab-link.active {
+            border-color: #a5b4fc; /* indigo-300 */
+            color: #a5b4fc;
+        }
     </style>
 </head>
 <body>
@@ -113,13 +123,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- RODAPÉ (Simples) -->
+    <!-- RODAPÉ (Corrigido para usar datetime.now().year) -->
     <footer class="mt-12 py-4 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400 text-sm">
-        &copy; {{ now().year }} {{ lab_name | default('LTIP') }}. Desenvolvido por Arthur - Bolsista.
+        &copy; {{ datetime.now().year }} {{ lab_name | default('LTIP') }}. Desenvolvido por Arthur - Bolsista.
     </footer>
-    
-    <!-- Função para obter ano atual em Jinja (necessita do datetime no app.py) -->
-    {%- macro now() -%}{{ datetime.now().year }}{%- endmacro -%}
 
 </body>
 </html>
