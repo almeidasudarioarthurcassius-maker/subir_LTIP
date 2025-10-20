@@ -7,7 +7,6 @@
     <h1 class="text-4xl font-extrabold text-indigo-800 mb-4 text-center">Painel de Gerenciamento do Inventário</h1>
     <p class="text-center text-gray-600 mb-8">Administre máquinas e equipamentos gerais.</p>
 
-    <!-- Exibição de Mensagens Flash -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         <div class="mb-6 space-y-3">
@@ -30,239 +29,221 @@
     {% endif %}
     {% endwith %}
 
-    <!-- Seção de Adicionar Novo Item -->
-    <div class="bg-gray-50 p-6 rounded-xl shadow-lg mb-10">
-        <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">Adicionar Novo Item</h2>
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-10">
+        <div class="flex border-b border-gray-200 mb-6" id="gerenciamento-tabs">
+            <button onclick="changeTab('adicionar')" class="tab-link px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition duration-150" data-tab="adicionar">Adicionar Novo Item</button>
+            <button onclick="changeTab('listar')" class="tab-link px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition duration-150" data-tab="listar">Listar/Editar Itens</button>
+            <button onclick="changeTab('info')" class="tab-link px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition duration-150" data-tab="info">Editar Informações</button>
+        </div>
         
-        <!-- Toggle para Formulários -->
-        <div class="flex space-x-4 mb-6" id="form-toggle-buttons">
-            <button onclick="toggleForm('maquina')" class="form-toggle-btn px-6 py-2 rounded-full text-white bg-green-600 hover:bg-green-700 transition duration-200 shadow-md">
-                Nova Máquina
-            </button>
-            <button onclick="toggleForm('equipamento')" class="form-toggle-btn px-6 py-2 rounded-full text-white bg-blue-600 hover:bg-blue-700 transition duration-200 shadow-md">
-                Novo Equipamento Geral
-            </button>
-        </div>
-
-        <!-- Formulário de Nova Máquina -->
-        <div id="form-maquina" class="hidden">
-            <h3 class="text-xl font-semibold text-green-700 mb-4">Cadastro de Máquina (PC/Notebook)</h3>
-            <form method="POST" action="{{ url_for('gerenciamento') }}" class="space-y-4 bg-white p-6 rounded-lg shadow-inner">
-                <input type="hidden" name="form_type" value="maquina">
-                
-                <div>
-                    <label for="m_asset_id" class="block text-sm font-medium text-gray-700">ID do Ativo (Ex: LTIP-COMP-001)</label>
-                    <input type="text" id="m_asset_id" name="asset_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
-                </div>
-                <div>
-                    <label for="m_type" class="block text-sm font-medium text-gray-700">Tipo</label>
-                    <select id="m_type" name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
-                        <option value="desktop">Desktop</option>
-                        <option value="laptop">Notebook</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="m_brand_model" class="block text-sm font-medium text-gray-700">Marca/Modelo</label>
-                    <input type="text" id="m_brand_model" name="brand_model" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
-                </div>
-                <div>
-                    <label for="m_format_status" class="block text-sm font-medium text-gray-700">Status da Formatação</label>
-                    <select id="m_format_status" name="format_status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
-                        <option value="Não formatado">Não formatado</option>
-                        <option value="Em andamento">Em andamento</option>
-                        <option value="Formatado">Formatado</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="m_format_date" class="block text-sm font-medium text-gray-700">Data da Última Formatação</label>
-                    <input type="date" id="m_format_date" name="format_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
-                </div>
-                 <div>
-                    <label for="m_tombo" class="block text-sm font-medium text-gray-700">Tombo (Opcional)</label>
-                    <input type="text" id="m_tombo" name="tombo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
-                </div>
-                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-                    Adicionar Máquina
+        <div id="tab-adicionar" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">Adicionar Novo Item</h2>
+            
+            <div class="flex space-x-4 mb-6" id="form-toggle-buttons">
+                <button onclick="toggleForm('maquina')" class="form-toggle-btn px-6 py-2 rounded-full text-white bg-green-600 hover:bg-green-700 transition duration-200 shadow-md">
+                    Nova Máquina
                 </button>
-            </form>
-        </div>
-
-        <!-- Formulário de Novo Equipamento Geral -->
-        <div id="form-equipamento" class="hidden">
-            <h3 class="text-xl font-semibold text-blue-700 mb-4">Cadastro de Equipamento Geral</h3>
-            <form method="POST" action="{{ url_for('gerenciamento') }}" class="space-y-4 bg-white p-6 rounded-lg shadow-inner">
-                <input type="hidden" name="form_type" value="equipamento">
-
-                <div>
-                    <label for="e_name" class="block text-sm font-medium text-gray-700">Nome do Equipamento</label>
-                    <input type="text" id="e_name" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
-                </div>
-                <div>
-                    <label for="e_brand" class="block text-sm font-medium text-gray-700">Marca (Opcional)</label>
-                    <input type="text" id="e_brand" name="brand" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
-                </div>
-                <div>
-                    <label for="e_model" class="block text-sm font-medium text-gray-700">Modelo (Opcional)</label>
-                    <input type="text" id="e_model" name="model" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
-                </div>
-                <div>
-                    <label for="e_functionality" class="block text-sm font-medium text-gray-700">Finalidade/Funcionalidade</label>
-                    <input type="text" id="e_functionality" name="functionality" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
-                </div>
-                <div>
-                    <label for="e_quantity" class="block text-sm font-medium text-gray-700">Quantidade</label>
-                    <input type="number" id="e_quantity" name="quantity" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
-                </div>
-                <div>
-                    <label for="e_tombo" class="block text-sm font-medium text-gray-700">Tombo (Opcional)</label>
-                    <input type="text" id="e_tombo" name="tombo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
-                </div>
-                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
-                    Adicionar Equipamento
+                <button onclick="toggleForm('equipamento')" class="form-toggle-btn px-6 py-2 rounded-full text-white bg-blue-600 hover:bg-blue-700 transition duration-200 shadow-md">
+                    Novo Equipamento Geral
                 </button>
-            </form>
+            </div>
+
+            <div id="form-maquina" class="hidden">
+                <h3 class="text-xl font-semibold text-green-700 mb-4">Cadastro de Máquina (PC/Notebook)</h3>
+                <form method="POST" action="{{ url_for('gerenciamento') }}" class="space-y-4 bg-white p-6 rounded-lg shadow-inner">
+                    <input type="hidden" name="form_type" value="maquina">
+                    
+                    <div>
+                        <label for="m_asset_id" class="block text-sm font-medium text-gray-700">ID do Ativo (Ex: LTIP-COMP-001)</label>
+                        <input type="text" id="m_asset_id" name="asset_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="m_type" class="block text-sm font-medium text-gray-700">Tipo</label>
+                        <select id="m_type" name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+                            <option value="desktop">Desktop</option>
+                            <option value="laptop">Notebook</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="m_brand_model" class="block text-sm font-medium text-gray-700">Marca/Modelo</label>
+                        <input type="text" id="m_brand_model" name="brand_model" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="m_format_status" class="block text-sm font-medium text-gray-700">Status da Formatação</label>
+                        <select id="m_format_status" name="format_status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+                            <option value="Não formatado">Não formatado</option>
+                            <option value="Em andamento">Em andamento</option>
+                            <option value="Formatado">Formatado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="m_format_date" class="block text-sm font-medium text-gray-700">Data da Última Formatação</label>
+                        <input type="date" id="m_format_date" name="format_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="m_tombo" class="block text-sm font-medium text-gray-700">Tombo (Opcional)</label>
+                        <input type="text" id="m_tombo" name="tombo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+                    </div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                        Adicionar Máquina
+                    </button>
+                </form>
+            </div>
+
+            <div id="form-equipamento" class="hidden">
+                <h3 class="text-xl font-semibold text-blue-700 mb-4">Cadastro de Equipamento Geral</h3>
+                <form method="POST" action="{{ url_for('gerenciamento') }}" class="space-y-4 bg-white p-6 rounded-lg shadow-inner">
+                    <input type="hidden" name="form_type" value="equipamento">
+                    <div>
+                        <label for="e_name" class="block text-sm font-medium text-gray-700">Nome do Equipamento</label>
+                        <input type="text" id="e_name" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="e_brand" class="block text-sm font-medium text-gray-700">Marca (Opcional)</label>
+                        <input type="text" id="e_brand" name="brand" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="e_model" class="block text-sm font-medium text-gray-700">Modelo (Opcional)</label>
+                        <input type="text" id="e_model" name="model" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="e_quantity" class="block text-sm font-medium text-gray-700">Quantidade</label>
+                        <input type="number" id="e_quantity" name="quantity" required min="1" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="e_tombo" class="block text-sm font-medium text-gray-700">Tombo (Opcional)</label>
+                        <input type="text" id="e_tombo" name="tombo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                        Adicionar Equipamento
+                    </button>
+                </form>
+            </div>
         </div>
+
+        <div id="tab-listar" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">Listar/Editar Itens</h2>
+            <p class="text-gray-600 mb-4">Em construção: Aqui você poderá visualizar, pesquisar, editar e excluir os itens de inventário.</p>
+            </div>
+
+        <div id="tab-info" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-red-700 mb-4 border-b pb-2">Editar Informações de Contato (Coordenador/Bolsista)</h2>
+                <form method="POST" action="{{ url_for('gerenciamento') }}" class="space-y-4 bg-gray-50 p-6 rounded-lg shadow-inner">
+                    <input type="hidden" name="form_type" value="lab_info">
+                    
+                    <h3 class="text-lg font-semibold text-indigo-600 border-b pb-1">Coordenador</h3>
+                    <div>
+                        <label for="c_name" class="block text-sm font-medium text-gray-700">Nome do Coordenador</label>
+                        <input type="text" id="c_name" name="coordenador_name" value="{{ info.coordenador_name or '' }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="c_email" class="block text-sm font-medium text-gray-700">Email do Coordenador</label>
+                        <input type="email" id="c_email" name="coordenador_email" value="{{ info.coordenador_email or '' }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+
+                    <h3 class="text-lg font-semibold text-indigo-600 border-b pb-1 pt-4">Bolsista</h3>
+                    <div>
+                        <label for="b_name" class="block text-sm font-medium text-gray-700">Nome do Bolsista</label>
+                        <input type="text" id="b_name" name="bolsista_name" value="{{ info.bolsista_name or '' }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="b_email" class="block text-sm font-medium text-gray-700">Email do Bolsista</label>
+                        <input type="email" id="b_email" name="bolsista_email" value="{{ info.bolsista_email or '' }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150">
+                        Atualizar Informações de Contato
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
-
-    <!-- Seção de Inventário de Máquinas -->
-    <section class="mb-12">
-        <h2 class="text-3xl font-bold text-green-700 mb-6 border-b pb-2">Inventário de Máquinas</h2>
-        {% if maquinas %}
-        <div class="bg-white shadow-xl rounded-xl overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-green-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tipo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Marca/Modelo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tombo</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Ações</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    {% for maquina in maquinas %}
-                    <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-800">{{ maquina.asset_id }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ maquina.type | capitalize }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ maquina.brand_model }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {% if maquina.format_status == 'Formatado' %}bg-green-100 text-green-800
-                            {% elif maquina.format_status == 'Em andamento' %}bg-yellow-100 text-yellow-800
-                            {% else %}bg-red-100 text-red-800{% endif %}">
-                                {{ maquina.format_status }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ maquina.tombo or 'N/A' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
-                            <a href="{{ url_for('edit_maquina', maquina_id=maquina.id) }}" class="text-indigo-600 hover:text-indigo-900 transition duration-150 font-medium">Editar</a>
-                            
-                            <form method="POST" action="{{ url_for('delete_maquina', maquina_id=maquina.id) }}" class="inline-block" onsubmit="return confirm('Tem certeza que deseja excluir a máquina {{ maquina.asset_id }}?');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="text-red-600 hover:text-red-900 transition duration-150 font-medium bg-transparent border-none p-0 cursor-pointer">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <p class="text-gray-500 p-4 bg-yellow-50 rounded-lg">Nenhuma máquina cadastrada. Use o formulário acima para adicionar.</p>
-        {% endif %}
-    </section>
-
-    <!-- Seção de Inventário de Equipamentos Gerais -->
-    <section>
-        <h2 class="text-3xl font-bold text-blue-700 mb-6 border-b pb-2">Inventário de Equipamentos Gerais</h2>
-        {% if equipamentos_gerais %}
-        <div class="bg-white shadow-xl rounded-xl overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-blue-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Nome</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Marca/Modelo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Finalidade</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Qtd</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Tombo</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Ações</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    {% for equipamento in equipamentos_gerais %}
-                    <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ equipamento.name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ equipamento.brand or 'N/A' }} / {{ equipamento.model or 'N/A' }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ equipamento.functionality }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-lg font-bold text-blue-600">{{ equipamento.quantity }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ equipamento.tombo or 'N/A' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
-                            <a href="{{ url_for('edit_equipamento', equipamento_id=equipamento.id) }}" class="text-indigo-600 hover:text-indigo-900 transition duration-150 font-medium">Editar</a>
-                            
-                            <form method="POST" action="{{ url_for('delete_equipamento', equipamento_id=equipamento.id) }}" class="inline-block" onsubmit="return confirm('Tem certeza que deseja excluir o equipamento {{ equipamento.name }}?');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="text-red-600 hover:text-red-900 transition duration-150 font-medium bg-transparent border-none p-0 cursor-pointer">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <p class="text-gray-500 p-4 bg-yellow-50 rounded-lg">Nenhum equipamento geral cadastrado. Use o formulário acima para adicionar.</p>
-        {% endif %}
-    </section>
-
+    
 </div>
 
 <script>
-    // Função para alternar a exibição dos formulários de adição
+    // Função para mudar a aba principal de gerenciamento
+    function changeTab(tabId) {
+        // Esconde todo o conteúdo da aba
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        // Remove a classe 'active' de todos os links de aba
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.classList.remove('active');
+            link.classList.remove('text-indigo-600', 'border-indigo-600');
+            link.classList.add('text-gray-500', 'border-transparent');
+        });
+
+        // Mostra o conteúdo da aba selecionada
+        const activeContent = document.getElementById('tab-' + tabId);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+        }
+
+        // Ativa o link da aba selecionada
+        const activeLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active', 'text-indigo-600', 'border-indigo-600');
+            activeLink.classList.remove('text-gray-500', 'border-transparent');
+        }
+    }
+
+    // Função para alternar entre os formulários de adição dentro da aba 'adicionar'
     function toggleForm(formType) {
         const maquinaForm = document.getElementById('form-maquina');
         const equipamentoForm = document.getElementById('form-equipamento');
-        const buttons = document.querySelectorAll('.form-toggle-btn');
 
-        // Resetar estilos dos botões
-        buttons.forEach(btn => {
-            btn.classList.remove('bg-gray-800', 'bg-green-700', 'bg-blue-700');
-            // Re-aplica cores padrão com base no tipo
-            if (btn.textContent.includes('Máquina')) {
-                btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            } else {
-                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            }
-        });
-
-        // Alternar formulários e destacar o botão ativo
+        // Lógica simplificada de toggle
         if (formType === 'maquina') {
             maquinaForm.classList.remove('hidden');
             equipamentoForm.classList.add('hidden');
-            document.querySelector('#form-toggle-buttons button:nth-child(1)').classList.add('bg-gray-800');
-            document.querySelector('#form-toggle-buttons button:nth-child(1)').classList.remove('bg-green-600');
+            // Remove as classes de destaque anteriores e adiciona a nova
+            document.querySelector('#form-toggle-buttons button:nth-child(1)').classList.add('bg-green-600', 'hover:bg-green-700');
+            document.querySelector('#form-toggle-buttons button:nth-child(1)').classList.remove('bg-gray-800', 'hover:bg-gray-700');
+            document.querySelector('#form-toggle-buttons button:nth-child(2)').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.querySelector('#form-toggle-buttons button:nth-child(2)').classList.add('bg-gray-800', 'hover:bg-gray-700');
+
 
         } else if (formType === 'equipamento') {
             equipamentoForm.classList.remove('hidden');
             maquinaForm.classList.add('hidden');
-            document.querySelector('#form-toggle-buttons button:nth-child(2)').classList.add('bg-gray-800');
-            document.querySelector('#form-toggle-buttons button:nth-child(2)').classList.remove('bg-blue-600');
+            // Remove as classes de destaque anteriores e adiciona a nova
+            document.querySelector('#form-toggle-buttons button:nth-child(2)').classList.add('bg-blue-600', 'hover:bg-blue-700');
+            document.querySelector('#form-toggle-buttons button:nth-child(2)').classList.remove('bg-gray-800', 'hover:bg-gray-700');
+            document.querySelector('#form-toggle-buttons button:nth-child(1)').classList.remove('bg-green-600', 'hover:bg-green-700');
+            document.querySelector('#form-toggle-buttons button:nth-child(1)').classList.add('bg-gray-800', 'hover:bg-gray-700');
+
         }
     }
-
-    // Inicializa mostrando o formulário de máquina por padrão
+    
+    // Inicializa a aba correta ao carregar a página
     document.addEventListener('DOMContentLoaded', () => {
-        // Verifica se há alguma mensagem flash de erro para manter o formulário de adição aberto
-        const hasError = document.querySelector('.bg-red-100');
+        // Obtém o parâmetro 'tab' da URL (passado via Jinja)
+        const activeTab = "{{ active_tab }}"; 
         
-        // Se houver erro, tenta deduzir qual formulário tentar abrir (se for um formulário de adição)
-        // Como o Flask não retorna qual form deu erro, vamos por padrão abrir o de Maquina
-        if (hasError) {
-             toggleForm('maquina');
+        // Define a aba ativa
+        if (activeTab) {
+            changeTab(activeTab);
         } else {
-             // Esconde ambos ao carregar, deixando o usuário escolher
-             document.getElementById('form-maquina').classList.add('hidden');
-             document.getElementById('form-equipamento').classList.add('hidden');
+            changeTab('adicionar'); // Aba padrão
+        }
+
+        // Lógica para controle do formulário de adição (apenas se a aba for 'adicionar')
+        if (activeTab === 'adicionar') {
+            const hasError = document.querySelector('.bg-red-100');
+            
+            // Se houver erro, tenta manter o formulário de máquina aberto por padrão no carregamento
+            if (hasError) {
+                 toggleForm('maquina');
+            } else {
+                 // Esconde ambos ao carregar, deixando o usuário escolher
+                 document.getElementById('form-maquina').classList.add('hidden');
+                 document.getElementById('form-equipamento').classList.add('hidden');
+            }
         }
     });
 </script>
