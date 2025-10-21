@@ -31,17 +31,25 @@
         /* CORREÇÃO DA ROLAGEM E CORES BASE */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: white; /* Cor de fundo branca */
-            color: black; /* Texto preto (conforme permissão) */
-            min-height: 100vh; /* Garante que o body ocupe a tela inteira */
-            overflow-y: auto; /* PERMITE A ROLAGEM VERTICAL */
+            background-color: #f1f7ff; /* Fundo em Azul Claro */
+            color: black; /* Texto preto */
+            min-height: 100vh;
+            overflow-y: auto;
         }
         
-        /* Estilo para garantir o espaço do fixed header e permitir rolagem */
+        /* Ajuste de padding para compensar o cabeçalho fixo (height ajustado para 104px (6.5rem) em mobile) */
         .main-content-wrapper {
-            padding-top: 5rem; /* pt-20 = 5rem. Ajusta para liberar espaço para a nav fixed */
-            min-height: calc(100vh - 4rem); /* Altura mínima da tela menos a altura do footer */
+            padding-top: 5rem; /* pt-20 = 5rem. Valor padrão para desktop */
+            min-height: calc(100vh - 4rem);
         }
+        
+        /* Ajuste para mobile, se o nav-bar aumentar de tamanho */
+        @media (max-width: 639px) { /* sm breakpoint */
+             .main-content-wrapper {
+                padding-top: 8rem; /* Aumenta o padding para 8rem em mobile */
+            }
+        }
+
         /* Estilo para links de tabulação (usado no gerenciamento) */
         .tab-link.active {
             border-color: #1e40af; /* Azul Escuro */
@@ -58,24 +66,26 @@
 
     <nav class="bg-white shadow-lg fixed w-full z-10 border-b border-ltip-light-blue">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:h-16 py-3 sm:py-0">
+                
+                <div class="flex items-center justify-center sm:justify-start mb-2 sm:mb-0">
                     <a href="{{ url_for('index') }}" class="flex-shrink-0 flex items-center">
-                        <span class="text-xl font-bold text-primary">LABORATÓRIO DE TECNOLOGIA DA INFORMAÇÃO DO PROFÁGUA</span>
+                        <span class="text-lg sm:text-xl font-bold text-primary text-center sm:text-left">LABORATÓRIO DE TECNOLOGIA DA INFORMAÇÃO DO PROFÁGUA</span>
                     </a>
                 </div>
-                <div class="flex items-center">
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-4">
+                
+                <div class="flex items-center justify-center sm:justify-end">
+                    <div class="flex flex-wrap justify-center sm:ml-6 sm:space-x-4 space-x-2">
                         
-                        <a href="{{ url_for('inventario') }}" class="text-black hover:bg-ltip-light-green/20 px-3 py-2 rounded-md text-sm font-medium transition duration-150">Inventário</a>
-                        <a href="{{ url_for('inventario') }}?tab=maquinas" class="text-black hover:bg-ltip-light-blue/20 px-3 py-2 rounded-md text-sm font-medium transition duration-150">Gerenciamento de Máquinas</a>
+                        <a href="{{ url_for('inventario') }}" class="text-black hover:bg-ltip-light-green/20 px-3 py-2 rounded-md text-sm font-medium transition duration-150 whitespace-nowrap">Inventário</a>
+                        <a href="{{ url_for('inventario') }}?tab=maquinas" class="text-black hover:bg-ltip-light-blue/20 px-3 py-2 rounded-md text-sm font-medium transition duration-150 whitespace-nowrap">Máquinas</a>
                         
                         {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('gerenciamento') }}" class="text-white bg-ltip-dark-green hover:bg-ltip-dark-green/90 px-3 py-2 rounded-md text-sm font-medium transition duration-150">Gerenciar</a>
-                            <a href="{{ url_for('gerenciamento') }}?tab=info" class="text-black hover:bg-ltip-light-blue/20 px-3 py-2 rounded-md text-sm font-medium transition duration-150">Editar Infos</a>
-                            <a href="{{ url_for('logout') }}" class="text-white bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md text-sm font-medium transition duration-150">Logout</a>
+                            <a href="{{ url_for('gerenciamento') }}" class="text-white bg-ltip-dark-green hover:bg-ltip-dark-green/90 px-3 py-2 rounded-md text-sm font-medium transition duration-150 whitespace-nowrap">Gerenciar</a>
+                            <a href="{{ url_for('gerenciamento') }}?tab=info" class="text-black hover:bg-ltip-light-blue/20 px-3 py-2 rounded-md text-sm font-medium transition duration-150 whitespace-nowrap">Editar Infos</a>
+                            <a href="{{ url_for('logout') }}" class="text-white bg-red-600 hover:bg-red-700 px-3 py-2 rounded-md text-sm font-medium transition duration-150 whitespace-nowrap">Logout</a>
                         {% else %}
-                            <a href="{{ url_for('login') }}" class="text-white bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-sm font-medium transition duration-150">Login</a>
+                            <a href="{{ url_for('login') }}" class="text-white bg-primary hover:bg-primary/90 px-3 py-2 rounded-md text-sm font-medium transition duration-150 whitespace-nowrap">Login</a>
                         {% endif %}
                     </div>
                 </div>
