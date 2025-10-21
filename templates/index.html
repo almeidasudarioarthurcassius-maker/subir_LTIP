@@ -3,87 +3,94 @@
 {% block title %}LTIP - {{ lab_name }}{% endblock %}
 
 {% block content %}
-<div class="bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 font-inter py-12 pt-20">
-    <div class="max-w-4xl mx-auto w-full space-y-8 p-10 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transform hover:shadow-3xl transition duration-500 ease-in-out">
+<div class="bg-white px-4 sm:px-6 lg:px-8 font-inter py-12">
+    <div class="max-w-4xl mx-auto w-full space-y-8 p-10 bg-white rounded-2xl shadow-2xl transition duration-500 ease-in-out border border-ltip-light-blue">
         <div class="text-center">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-indigo-700 dark:text-indigo-400 tracking-tight mb-2">
-                LTIP
-            </h1>
-            <h2 class="text-lg sm:text-xl font-medium text-gray-700 dark:text-gray-300">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-primary tracking-tight mb-2">
                 {{ lab_name }}
-            </h2>
-            <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+            </h1>
+            <p class="mt-4 text-gray-700 max-w-2xl mx-auto">
                 Seja bem-vindo ao sistema de controle de inventário.
             </p>
         </div>
 
         {% if info %}
-        <div class="bg-blue-50 dark:bg-gray-700/50 p-6 rounded-xl shadow-inner border border-blue-200 dark:border-gray-700">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="text-xl font-bold text-blue-800 dark:text-blue-300">
+        <div class="bg-ltip-light-blue/20 p-6 rounded-xl shadow-inner border border-ltip-light-blue">
+            <div class="flex justify-between items-center mb-4 border-b border-ltip-light-blue pb-2">
+                <h3 class="text-xl font-bold text-primary">
                     Informações de Contato
                 </h3>
                 {% if current_user.is_authenticated %}
-                <a href="{{ url_for('gerenciamento') }}?tab=info" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 transition duration-150">
+                <a href="{{ url_for('gerenciamento') }}?tab=info" class="text-sm font-semibold text-ltip-dark-green hover:text-ltip-dark-green/80 transition duration-150">
                     Editar Informações
                 </a>
                 {% endif %}
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700 dark:text-gray-300">
-                <div>
-                    <p class="font-semibold text-sm uppercase tracking-wider text-blue-700 dark:text-blue-400">Coordenador</p>
-                    <p class="text-lg font-medium">{{ info.coordenador_name }}</p>
-                    <p class="text-sm italic">{{ info.coordenador_email }}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+                <div class="p-3 bg-white rounded-lg shadow-sm border border-ltip-dark-blue/10">
+                    <p class="font-semibold text-sm uppercase tracking-wider text-primary">Coordenador</p>
+                    <p class="text-lg font-medium text-black">{{ info.coordenador_name or 'N/A' }}</p>
+                    <p class="text-sm italic text-gray-600">{{ info.coordenador_email or 'N/A' }}</p>
                 </div>
-                <div>
-                    <p class="font-semibold text-sm uppercase tracking-wider text-blue-700 dark:text-blue-400">Bolsista</p>
-                    <p class="text-lg font-medium">{{ info.bolsista_name }}</p>
-                    <p class="text-sm italic">{{ info.bolsista_email }}</p>
+                <div class="p-3 bg-white rounded-lg shadow-sm border border-ltip-dark-blue/10">
+                    <p class="font-semibold text-sm uppercase tracking-wider text-ltip-dark-green">Bolsista</p>
+                    <p class="text-lg font-medium text-black">{{ info.bolsista_name or 'N/A' }}</p>
+                    <p class="text-sm italic text-gray-600">{{ info.bolsista_email or 'N/A' }}</p>
                 </div>
             </div>
         </div>
         {% else %}
-        <div class="text-center p-6 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-            As informações de contato ainda não foram cadastradas. Por favor, acesse o gerenciamento para preenchê-las.
-        </div>
+        <div class="text-center p-6 text-gray-700 bg-ltip-light-blue/20 rounded-xl border border-ltip-light-blue"> As informações de contato ainda não foram cadastradas. Por favor, acesse o gerenciamento para preenchê-las. </div>
         {% endif %}
 
-        <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-gray-100 dark:border-gray-700">
-
-            <div class="p-6 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.02]">
+        <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-gray-200">
+            <div class="bg-ltip-light-green/20 border border-ltip-dark-green/50 p-6 rounded-xl shadow-lg">
                 <div class="flex items-center space-x-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 dark:text-indigo-400"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7.5 7.5h.01"/></svg>
-                    <h3 class="text-2xl font-bold text-indigo-800 dark:text-indigo-200">Inventário Público</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-ltip-dark-green"><path d="M12 2l10 5.5v11L12 22 2 17.5v-11L12 2zM12 22v-11"/><path d="M22 7.5l-10 5.5-10-5.5"/><path d="M12 11.5l10 5.5v-11L12 6z"/></svg>
+                    <h3 class="text-2xl font-bold text-ltip-dark-green">Inventário Completo</h3>
                 </div>
-                <p class="mt-3 text-gray-600 dark:text-gray-400">
-                    Consulte a listagem completa de todas as máquinas e equipamentos cadastrados no laboratório.
+                <p class="mt-3 text-gray-700">
+                    Acesso público à lista completa de equipamentos gerais do laboratório (ex: monitores, impressoras, periféricos).
                 </p>
                 <div class="mt-6">
-                    <a href="{{ url_for('inventario') }}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                    <a href="{{ url_for('inventario') }}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-ltip-dark-green hover:bg-ltip-dark-green/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ltip-dark-green transition duration-150">
                         Ver Inventário
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </div>
-
-            <div class="p-6 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.02]">
+            
+            <div class="bg-ltip-light-blue/20 border border-primary/50 p-6 rounded-xl shadow-lg">
                 <div class="flex items-center space-x-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-600 dark:text-yellow-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    <h3 class="text-2xl font-bold text-yellow-800 dark:text-yellow-200">Acesso Administrativo</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <h3 class="text-2xl font-bold text-primary">Gerenciamento de Máquinas</h3>
                 </div>
-                <p class="mt-3 text-gray-600 dark:text-gray-400">
-                    Área restrita para a equipe de gestão. Necessário login para adicionar, editar ou excluir itens do inventário.
+                <p class="mt-3 text-gray-700">
+                    Acesso público à lista de máquinas de processamento (PCs e Notebooks) com seus detalhes técnicos.
                 </p>
                 <div class="mt-6">
-                    <a href="{{ url_for('login') }}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-150">
-                        Fazer Login
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
+                    <a href="{{ url_for('inventario') }}?tab=maquinas" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150">
+                        Ver Máquinas
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </div>
 
+            <div class="md:col-span-2 bg-gray-100 p-6 rounded-xl shadow-inner border border-gray-300">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-black mb-3">Acesso Administrativo (Bolsista/Coordenador)</h3>
+                    <p class="text-gray-600 mb-4">
+                        Faça login para ter acesso aos botões de Cadastrar Máquinas/Equipamentos e Editar Informações.
+                    </p>
+                    <a href="{{ url_for('login') }}" class="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150">
+                        Fazer Login
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    </a>
+                </div>
+            </div>
         </div>
+
     </div>
 </div>
 {% endblock %}
