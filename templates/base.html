@@ -38,7 +38,6 @@
         }
 
         /* CORREÇÃO DE CONTRASTE: Garante texto branco em fundos Azul Escuro (primary) */
-        /* Isso corrige o problema de "letras azul claro com fundo azul escuro"  */
         .bg-primary .text-ltip-light-blue,
         .bg-primary .text-primary {
             color: white !important;
@@ -81,6 +80,11 @@
                 </div>
                 
                 <div class="hidden sm:ml-6 sm:flex sm:space-x-8 items-center">
+                    
+                    {% if current_user.is_authenticated %}
+                        <span class="text-sm font-bold text-primary">Bem-vindo, {{ current_user.display_name }}!</span>
+                    {% endif %}
+                    
                     <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-primary transition duration-150 {% if request.path == url_for('index') %}text-primary font-semibold{% endif %}">Início</a>
                     <a href="{{ url_for('inventario') }}" class="text-gray-700 hover:text-primary transition duration-150 {% if request.path == url_for('inventario') %}text-primary font-semibold{% endif %}">Inventário</a>
                     
@@ -108,6 +112,11 @@
 
         <div class="sm:hidden hidden" id="mobile-menu">
             <div class="pt-2 pb-3 space-y-1">
+                
+                {% if current_user.is_authenticated %}
+                    <span class="block px-3 py-2 text-base font-bold text-primary">Bem-vindo, {{ current_user.display_name }}!</span>
+                {% endif %}
+
                 <a href="{{ url_for('index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary {% if request.path == url_for('index') %}bg-gray-100 text-primary font-semibold{% endif %}">Início</a>
                 <a href="{{ url_for('inventario') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary {% if request.path == url_for('inventario') %}bg-gray-100 text-primary font-semibold{% endif %}">Inventário</a>
                 
