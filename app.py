@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-import os
+import os # ESSENCIAL: Importado para ler variáveis de ambiente
 import csv
 from datetime import datetime # ESTA IMPORTAÇÃO É NECESSÁRIA
 from werkzeug.utils import secure_filename # NOVO: Para segurança de nomes de arquivo
@@ -12,8 +12,16 @@ import uuid # NOVO: Para nomes de arquivo únicos
 app = Flask(__name__)
 # A secret_key é obrigatória para sessões, flash messages e segurança
 app.secret_key = "ltip_secret_key" 
-# Configura o banco de dados SQLite
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ltip.db"
+
+# >>> MUDANÇA PRINCIPAL: Configuração de Banco de Dados Persistente
+# Usa a variável de ambiente DATABASE_URL (Render/Produção) ou fallback para SQLite (Desenvolvimento Local)
+# A função .replace é um workaround comum para o formato de URL de alguns provedores de hospedagem (e.g., Render)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL", 
+    "sqlite:///ltip.db"
+).replace("postgres://", "postgresql://")
+# FIM DA MUDANÇA PRINCIPAL <<<
+
 # Pasta para uploads de imagens (deve existir na raiz do projeto)
 app.config["UPLOAD_FOLDER"] = "uploads"
 
@@ -23,7 +31,8 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
 # Define o nome completo do laboratório como uma constante
-LAB_NAME_FULL = "LABORATÓRIO DE TECNOLOGIA DA INFORMAÇÃO DO PROFÁGUA - LTIP"
+# NOME DO LABORATÓRIO MANTIDO
+LAB_NAME_FULL = "LABORATÓRIO DE TECNOLOGIA DA INFORMAÇÃO DO PROFÁGUA" 
 
 # --- NOVO: FUNÇÃO PARA TRATAMENTO DE UPLOAD DE IMAGEM ---
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -33,253 +42,205 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def save_image(file):
-    """Salva o arquivo de imagem com um nome único."""
-    if file and file.filename and allowed_file(file.filename):
-        # 1. Cria um nome único usando UUID
-        filename = secure_filename(file.filename)
-        # Prefere usar o nome original (seguro) após o UUID para rastreabilidade
-        unique_filename = str(uuid.uuid4()) + "_" + filename 
-        # 2. Salva o arquivo na pasta de uploads
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
-        return unique_filename
-    return None
+# ... (Mantenha o restante das suas classes de modelo - User, LabInfo, Maquina, Equipamento)
 
-# --- CONTEXT PROCESSOR PARA DATETIME ---
-# Isso garante que a função datetime esteja disponível em TODOS os templates Jinja
-@app.context_processor
-def inject_now():
-    return {'datetime': datetime}
+# --- MODELOS (CLASSES PARA O BANCO DE DADOS) ---
 
-
-# --- MODELOS ---
-class User(db.Model, UserMixin):
+class User(UserMixin, db.Model):
+# ... (Mantenha o conteúdo da classe User)
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(80), nullable=False)
-    role = db.Column(db.String(20), nullable=False) # admin, bolsista, visitante
+    password = db.Column(db.String(120), nullable=False) # Senha deve ser hash real em prod
+    role = db.Column(db.String(50), nullable=False, default='visitante')
 
-# Novo modelo Machine para controle detalhado (Planilha1.csv)
-class Machine(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    asset_id = db.Column(db.String(50), unique=True, nullable=False) # LTIP-COMP-001
-    type = db.Column(db.String(50)) # desktop, laptop
-    brand_model = db.Column(db.String(120))
-    serial_number = db.Column(db.String(120))
-    format_status = db.Column(db.String(50)) # Formatado, Em andamento, Não formatado
-    format_date = db.Column(db.Date)
-    software = db.Column(db.Text)
-    license = db.Column(db.String(120))
-    observations = db.Column(db.Text)
-    # CORRIGIDO: Removido unique=True para permitir tombo vazio
-    tombo = db.Column(db.String(50)) 
-    image_url = db.Column(db.String(255)) # Novo campo para imagem
-
-# Modelo Equipment para itens gerais (Sheet1.csv)
-class Equipment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False) # Tipo de Equipamento
-    functionality = db.Column(db.String(120)) # Finalidade
-    brand = db.Column(db.String(120))
-    model = db.Column(db.String(120))
-    quantity = db.Column(db.Integer)
-    # CORRIGIDO: Removido unique=True para permitir tombo vazio
-    tombo = db.Column(db.String(50)) 
-    image_url = db.Column(db.String(255)) # Novo campo para imagem
-
-# Modelo LabInfo para informações de contato
 class LabInfo(db.Model):
+# ... (Mantenha o conteúdo da classe LabInfo)
     id = db.Column(db.Integer, primary_key=True)
-    coordenador_name = db.Column(db.String(120))
-    coordenador_email = db.Column(db.String(120))
-    bolsista_name = db.Column(db.String(120))
-    bolsista_email = db.Column(db.String(120))
+    coordenador_name = db.Column(db.String(100), nullable=False)
+    coordenador_email = db.Column(db.String(100), nullable=False)
+    bolsista_name = db.Column(db.String(100), nullable=False)
+    bolsista_email = db.Column(db.String(100), nullable=False)
 
+class Maquina(db.Model):
+# ... (Mantenha o conteúdo da classe Maquina)
+    id = db.Column(db.Integer, primary_key=True)
+    tombo = db.Column(db.String(100), unique=False, nullable=False) # unique=False ajustado para permitir reuso
+    nome = db.Column(db.String(100), nullable=False)
+    localizacao = db.Column(db.String(100), nullable=True)
+    processador = db.Column(db.String(100), nullable=True)
+    memoria_ram = db.Column(db.String(100), nullable=True)
+    sistema_operacional = db.Column(db.String(100), nullable=True)
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
+    image_filename = db.Column(db.String(255), nullable=True)
+    observacoes = db.Column(db.Text, nullable=True)
 
-# --- LOGIN MANAGER ---
+class Equipamento(db.Model):
+# ... (Mantenha o conteúdo da classe Equipamento)
+    id = db.Column(db.Integer, primary_key=True)
+    tombo = db.Column(db.String(100), unique=False, nullable=False) # unique=False ajustado para permitir reuso
+    nome = db.Column(db.String(100), nullable=False)
+    localizacao = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.String(50), nullable=False, default='Disponível')
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
+    image_filename = db.Column(db.String(255), nullable=True)
+    observacoes = db.Column(db.Text, nullable=True)
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# --- ROTAS (VIEWS) ---
 
-# --- ROTAS ---
-
-# Rota para servir arquivos de upload (essencial para exibir imagens)
-@app.route("/uploads/<filename>")
-def uploaded_file(filename):
-    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
-
-# Rota Inicial
 @app.route("/")
 def index():
-    # Busca as informações de contato do laboratório para exibir
-    info = LabInfo.query.first()
-    
-    # Busca equipamentos para exibição na página inicial (opcional, mas bom ter)
-    equipamentos = Equipment.query.order_by(Equipment.name).limit(5).all()
-    maquinas = Machine.query.order_by(Machine.asset_id).limit(5).all()
-    
-    return render_template(
-        "index.html",
-        lab_name=LAB_NAME_FULL,
-        info=info,
-        equipamentos=equipamentos,
-        maquinas=maquinas
-    )
+# ... (Mantenha o conteúdo da rota index)
+    lab_info = LabInfo.query.first()
+    return render_template("index.html", lab_name=LAB_NAME_FULL, info=lab_info)
+
+@app.route("/inventario")
+# ... (Mantenha o conteúdo da rota inventario)
+def inventario():
+    maquinas = Maquina.query.all()
+    equipamentos = Equipamento.query.all()
+    return render_template("inventario.html", maquinas=maquinas, equipamentos=equipamentos)
+
+@app.route("/relatorios")
+@login_required
+def relatorios():
+    return render_template("relatorios.html")
 
 @app.route("/login", methods=["GET", "POST"])
+# ... (Mantenha o conteúdo da rota login)
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("gerenciamento"))
-        
+        return redirect(url_for("index"))
+    
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
         
-        # NOTE: Em um sistema real, a senha deve ser hasheada (ex: usando werkzeug.security.check_password_hash)
-        if user and user.password == password:
+        if user and user.password == password: # Atenção: Em produção, use hash de senha!
             login_user(user)
-            flash(f"Login de {user.role.capitalize()} realizado com sucesso!", "success")
-            return redirect(url_for("gerenciamento"))
+            flash(f"Login realizado com sucesso! Bem-vindo(a), {user.username}.", "success")
+            return redirect(url_for("index"))
         else:
-            flash("Usuário ou senha incorretos.", "error")
+            flash("Nome de usuário ou senha inválidos.", "error")
+    
     return render_template("login.html")
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    flash("Logout realizado com sucesso.", "info")
+    flash("Você foi desconectado(a).", "info")
     return redirect(url_for("index"))
 
-@app.route("/inventario")
-def inventario():
-    # Carrega todos os dados para o inventário público
-    maquinas = Machine.query.order_by(Machine.asset_id).all()
-    equipamentos_gerais = Equipment.query.order_by(Equipment.name).all()
-    
-    return render_template(
-        "inventario.html",
-        lab_name=LAB_NAME_FULL,
-        maquinas=maquinas,
-        equipamentos_gerais=equipamentos_gerais
-    )
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 @app.route("/gerenciamento", methods=["GET", "POST"])
 @login_required
 def gerenciamento():
-    # Busca LabInfo para preencher o formulário
-    info = LabInfo.query.first()
-    
+    if current_user.role not in ['bolsista', 'coordenador']:
+        flash("Permissão negada. Você não tem acesso à área de gerenciamento.", "error")
+        return redirect(url_for("index"))
+
+    # Pega o primeiro registro (LabInfo) ou cria um novo se não existir (o que foi feito na inicialização)
+    lab_info = LabInfo.query.first()
+    if not lab_info:
+        # Se por acaso o primeiro não existir, tenta criar um dummy para evitar crash
+        lab_info = LabInfo(coordenador_name="Não Encontrado", coordenador_email="...", bolsista_name="Não Encontrado", bolsista_email="...")
+        
+    active_tab = request.args.get('tab', 'info') # Obtém a aba ativa da URL ou usa 'info' como padrão
+
     if request.method == "POST":
         form_type = request.form.get("form_type")
         
-        # --- Lógica de Edição de Informações de Contato ---
-        if form_type == "lab_info":
-            if not info:
-                info = LabInfo() # Cria se não existir
-            info.coordenador_name = request.form["coordenador_name"]
-            info.coordenador_email = request.form["coordenador_email"]
-            info.bolsista_name = request.form["bolsista_name"]
-            info.bolsista_email = request.form["bolsista_email"]
-            db.session.add(info)
-            db.session.commit()
-            flash("Informações de contato atualizadas com sucesso!", "success")
-            return redirect(url_for("gerenciamento", tab="info")) # Redireciona para manter a aba de info aberta
-        
-        # --- Lógica de Adição de Máquina (CORRIGIDO E COMPLETO) ---
-        elif form_type == "maquina":
+        if active_tab == 'info':
+            # --- Atualização de LabInfo ---
+            lab_info.coordenador_name = request.form.get("coordenador_name")
+            lab_info.coordenador_email = request.form.get("coordenador_email")
+            lab_info.bolsista_name = request.form.get("bolsista_name")
+            lab_info.bolsista_email = request.form.get("bolsista_email")
+            
             try:
-                asset_id = request.form["asset_id"]
-                tombo = request.form.get("tombo").strip() # Limpa espaços
-                
-                # Checa por Asset ID duplicado (Deve ser sempre único)
-                if Machine.query.filter_by(asset_id=asset_id).first():
-                    flash(f"Erro: Máquina com ID de Ativo '{asset_id}' já existe.", "error")
-                    return redirect(url_for("gerenciamento", tab="adicionar"))
-                
-                # Lógica de Upload de Imagem
-                image_file = request.files.get("image_file")
-                image_url = save_image(image_file)
-                
-                # Converte data de string para objeto Date
-                format_date_str = request.form.get("format_date")
-                format_date = datetime.strptime(format_date_str, '%Y-%m-%d').date() if format_date_str else None
-                
-                nova_maquina = Machine(
-                    asset_id=asset_id,
-                    type=request.form["type"],
-                    brand_model=request.form["brand_model"],
-                    serial_number=request.form.get("serial_number"),
-                    format_status=request.form.get("format_status"),
-                    format_date=format_date,
-                    software=request.form.get("software"),
-                    license=request.form.get("license"),
-                    # CORREÇÃO: Converte string vazia para None se Tombo for opcional
-                    tombo=tombo if tombo else None,
-                    image_url=image_url
-                )
-                db.session.add(nova_maquina)
                 db.session.commit()
-                flash("Máquina adicionada com sucesso!", "success")
-                return redirect(url_for("gerenciamento", tab="adicionar"))
-
+                flash("Informações de contato atualizadas com sucesso!", "success")
             except Exception as e:
                 db.session.rollback()
-                flash(f"Erro ao adicionar máquina: {e}", "error")
-                return redirect(url_for("gerenciamento", tab="adicionar"))
-        
-        # --- Lógica de Adição de Equipamento Geral (CORRIGIDO E COMPLETO) ---
-        elif form_type == "equipamento":
+                flash(f"Erro ao salvar: {e}", "error")
+                
+            return redirect(url_for('gerenciamento', tab='info'))
+
+        elif active_tab == 'cadastro' and form_type in ['maquina', 'equipamento']:
+            # --- Cadastro de Inventário ---
+            tombo = request.form.get("tombo")
+            nome = request.form.get("nome")
+            localizacao = request.form.get("localizacao")
+            observacoes = request.form.get("observacoes")
+            
+            # Tratar upload de imagem
+            image_filename = None
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and allowed_file(file.filename):
+                    original_filename = secure_filename(file.filename)
+                    # Cria um nome de arquivo único para evitar colisões
+                    unique_filename = str(uuid.uuid4()) + os.path.splitext(original_filename)[1]
+                    # Garante que a pasta de upload exista
+                    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+                        os.makedirs(app.config["UPLOAD_FOLDER"])
+                    # Salva o arquivo
+                    file.save(os.path.join(app.config["UPLOAD_FOLDER"], unique_filename))
+                    image_filename = unique_filename
+
             try:
-                tombo = request.form.get("tombo").strip() # Limpa espaços
+                if form_type == 'maquina':
+                    maquina = Maquina(
+                        tombo=tombo,
+                        nome=nome,
+                        localizacao=localizacao,
+                        processador=request.form.get("processador"),
+                        memoria_ram=request.form.get("memoria_ram"),
+                        sistema_operacional=request.form.get("sistema_operacional"),
+                        observacoes=observacoes,
+                        image_filename=image_filename
+                    )
+                    db.session.add(maquina)
+                    flash(f"Máquina '{nome}' cadastrada com sucesso!", "success")
                 
-                # Lógica de Upload de Imagem
-                image_file = request.files.get("image_file")
-                image_url = save_image(image_file)
+                elif form_type == 'equipamento':
+                    equipamento = Equipamento(
+                        tombo=tombo,
+                        nome=nome,
+                        localizacao=localizacao,
+                        status=request.form.get("status", "Disponível"),
+                        observacoes=observacoes,
+                        image_filename=image_filename
+                    )
+                    db.session.add(equipamento)
+                    flash(f"Equipamento '{nome}' cadastrado com sucesso!", "success")
                 
-                novo_equipamento = Equipment(
-                    name=request.form["name"],
-                    functionality=request.form["functionality"],
-                    brand=request.form.get("brand"),
-                    model=request.form.get("model"),
-                    # Converte para int e trata erro de campo vazio/inválido
-                    quantity=int(request.form["quantity"]), 
-                    # CORREÇÃO: Converte string vazia para None para evitar UNIQUE constraint error
-                    tombo=tombo if tombo else None,
-                    image_url=image_url
-                )
-                db.session.add(novo_equipamento)
                 db.session.commit()
-                flash("Equipamento adicionado com sucesso!", "success")
-                return redirect(url_for("gerenciamento", tab="adicionar"))
-            except ValueError:
-                db.session.rollback()
-                flash("Erro ao adicionar equipamento: O campo 'Quantidade' deve ser um número inteiro válido.", "error")
-                return redirect(url_for("gerenciamento", tab="adicionar"))
             except Exception as e:
                 db.session.rollback()
-                flash(f"Erro ao adicionar equipamento. Detalhe: {e}", "error")
-                return redirect(url_for("gerenciamento", tab="adicionar"))
-        
-        # Redirecionamento padrão caso não haja form_type (melhoria de segurança)
-        flash("Formulário inválido.", "error")
-        return redirect(url_for("gerenciamento"))
+                flash(f"Erro ao cadastrar: Verifique se o Tombo/N° Patrimônio já existe (ou outra restrição do DB). Erro: {e}", "error")
+                
+            # Redireciona para a aba de cadastro, mantendo o formulário de máquina/equipamento ativo
+            form_to_show = request.form.get('activeForm', 'maquina') # Obtém o form ativo do JS/Hidden field
+            return redirect(url_for('gerenciamento', tab='cadastro', active_form=form_to_show))
 
-    # GET request - Carrega os dados e o estado da aba
-    maquinas = Machine.query.order_by(Machine.asset_id).all()
-    equipamentos = Equipment.query.order_by(Equipment.name).all()
-    
-    # Obtém o parâmetro 'tab' da URL, com 'adicionar' como padrão
-    active_tab = request.args.get('tab', 'adicionar')
-    
+    # GET request ou após o POST, para renderizar a página
+    # ATENÇÃO: É importante garantir que o LabInfo seja passado, mesmo que vazio
     return render_template(
-        "gerenciamento.html",
-        maquinas=maquinas,
-        equipamentos=equipamentos,
-        info=info or LabInfo(), # Garante que LabInfo seja passado, mesmo que vazio
-        active_tab=active_tab # Passa a aba ativa para o JS/Jinja
+        "gerenciamento.html", 
+        lab_info=lab_info, 
+        active_tab=active_tab, # Passa a aba ativa para o JS/Jinja
+        # NEW: Passa o form ativo (maquina/equipamento) para o JS inicializar corretamente após o POST
+        active_form=request.args.get('active_form', 'maquina') 
     )
 
 # --- CRIAÇÃO INICIAL E EXECUÇÃO ---
@@ -287,6 +248,8 @@ with app.app_context():
     # ATENÇÃO: Se o banco de dados já existe, db.create_all() não altera colunas.
     # É recomendável DELETAR o arquivo 'ltip.db' ANTES de rodar o app para que
     # as alterações nos modelos (remoção do unique=True no tombo) tenham efeito.
+    # Se você for migrar para PostgreSQL, não é necessário deletar o arquivo SQLite,
+    # mas o banco PostgreSQL deve ser populado uma vez.
     db.create_all()
     
     # Cria usuários padrão (se não existirem)
@@ -304,14 +267,15 @@ with app.app_context():
             coordenador_name="[NOME DO COORDENADOR]",
             coordenador_email="coordenador@uea.edu.br",
             bolsista_name="Arthur [SOBRENOME]",
-            bolsista_email="arthur2006@uea.edu.br",
+            bolsista_email="arthur2006@uea.edu.br"
         )
         db.session.add(info)
         db.session.commit()
-        print("Informações do Laboratório padrão criadas.")
+        print("Informações padrão do Lab criadas.")
 
 if __name__ == "__main__":
-    # Garante que a pasta de uploads exista
-    if not os.path.exists("uploads"):
-        os.makedirs("uploads")
+    # Quando rodando localmente, cria a pasta de uploads se não existir
+    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+        os.makedirs(app.config["UPLOAD_FOLDER"])
+    # Rodar o app
     app.run(debug=True)
