@@ -13,7 +13,7 @@ app = Flask(__name__)
 # A secret_key é obrigatória para sessões, flash messages e segurança
 app.secret_key = "ltip_secret_key" 
 
-# >>> MUDANÇA PRINCIPAL: Configuração de Banco de Dados Persistente
+# >>> MUDANÇA PRINCIPAL (Persistência): Configuração de Banco de Dados Persistente
 # Usa a variável de ambiente DATABASE_URL (Render/Produção) ou fallback para SQLite (Desenvolvimento Local)
 # A função .replace é um workaround comum para o formato de URL de alguns provedores de hospedagem (e.g., Render)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
@@ -34,6 +34,13 @@ login_manager.login_view = "login"
 # NOME DO LABORATÓRIO MANTIDO
 LAB_NAME_FULL = "LABORATÓRIO DE TECNOLOGIA DA INFORMAÇÃO DO PROFÁGUA" 
 
+# >>> FIX PARA JINJA2.exceptions.UndefinedError: 'datetime' is undefined
+# Isso injeta o objeto 'datetime' (a classe) em todos os templates
+@app.context_processor
+def inject_datetime():
+    return {'datetime': datetime}
+# FIM DO FIX <<<
+
 # --- NOVO: FUNÇÃO PARA TRATAMENTO DE UPLOAD DE IMAGEM ---
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -42,19 +49,15 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ... (Mantenha o restante das suas classes de modelo - User, LabInfo, Maquina, Equipamento)
-
 # --- MODELOS (CLASSES PARA O BANCO DE DADOS) ---
 
 class User(UserMixin, db.Model):
-# ... (Mantenha o conteúdo da classe User)
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False) # Senha deve ser hash real em prod
     role = db.Column(db.String(50), nullable=False, default='visitante')
 
 class LabInfo(db.Model):
-# ... (Mantenha o conteúdo da classe LabInfo)
     id = db.Column(db.Integer, primary_key=True)
     coordenador_name = db.Column(db.String(100), nullable=False)
     coordenador_email = db.Column(db.String(100), nullable=False)
@@ -62,7 +65,6 @@ class LabInfo(db.Model):
     bolsista_email = db.Column(db.String(100), nullable=False)
 
 class Maquina(db.Model):
-# ... (Mantenha o conteúdo da classe Maquina)
     id = db.Column(db.Integer, primary_key=True)
     tombo = db.Column(db.String(100), unique=False, nullable=False) # unique=False ajustado para permitir reuso
     nome = db.Column(db.String(100), nullable=False)
@@ -75,7 +77,6 @@ class Maquina(db.Model):
     observacoes = db.Column(db.Text, nullable=True)
 
 class Equipamento(db.Model):
-# ... (Mantenha o conteúdo da classe Equipamento)
     id = db.Column(db.Integer, primary_key=True)
     tombo = db.Column(db.String(100), unique=False, nullable=False) # unique=False ajustado para permitir reuso
     nome = db.Column(db.String(100), nullable=False)
@@ -93,12 +94,10 @@ def load_user(user_id):
 
 @app.route("/")
 def index():
-# ... (Mantenha o conteúdo da rota index)
     lab_info = LabInfo.query.first()
     return render_template("index.html", lab_name=LAB_NAME_FULL, info=lab_info)
 
 @app.route("/inventario")
-# ... (Mantenha o conteúdo da rota inventario)
 def inventario():
     maquinas = Maquina.query.all()
     equipamentos = Equipamento.query.all()
@@ -110,7 +109,6 @@ def relatorios():
     return render_template("relatorios.html")
 
 @app.route("/login", methods=["GET", "POST"])
-# ... (Mantenha o conteúdo da rota login)
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("index"))
