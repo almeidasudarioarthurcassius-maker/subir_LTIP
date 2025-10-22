@@ -7,142 +7,160 @@
     <h1 class="text-4xl font-extrabold text-primary mb-6 text-center">Inventário Geral do Laboratório LTIP</h1>
     
     <div class="text-center mb-10">
-        <div class="inline-flex rounded-md shadow-sm bg-ltip-dark-accent border border-primary" role="group">
-            <button onclick="document.getElementById('equipamentos').classList.remove('hidden'); document.getElementById('maquinas').classList.add('hidden'); toggleActive(this, 'tab-equipamentos')" type="button" class="tab-button inline-flex items-center px-4 py-2 text-sm font-medium text-ltip-text bg-ltip-success rounded-l-lg hover:bg-ltip-success/90 focus:z-10 focus:ring-2 focus:ring-ltip-success focus:text-ltip-text" id="tab-equipamentos-btn">
+        <div class="inline-flex rounded-md shadow-sm" role="group">
+            <button onclick="document.getElementById('equipamentos').classList.remove('hidden'); document.getElementById('maquinas').classList.add('hidden'); toggleActive(this, 'tab-equipamentos')" type="button" class="tab-button inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-ltip-dark-green rounded-l-lg border border-gray-200 hover:bg-ltip-dark-green/90 focus:z-10 focus:ring-2 focus:ring-ltip-dark-green focus:text-white" id="tab-equipamentos-btn">
                 Equipamentos Gerais
             </button>
-            <button onclick="document.getElementById('equipamentos').classList.add('hidden'); document.getElementById('maquinas').classList.remove('hidden'); toggleActive(this, 'tab-maquinas')" type="button" class="tab-button inline-flex items-center px-4 py-2 text-sm font-medium text-ltip-text bg-primary rounded-r-md hover:bg-primary/90 focus:z-10 focus:ring-2 focus:ring-primary focus:text-ltip-text" id="tab-maquinas-btn">
+            <button onclick="document.getElementById('equipamentos').classList.add('hidden'); document.getElementById('maquinas').classList.remove('hidden'); toggleActive(this, 'tab-maquinas')" type="button" class="tab-button inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-r-md border border-gray-200 hover:bg-primary/90 focus:z-10 focus:ring-2 focus:ring-primary focus:text-white" id="tab-maquinas-btn">
                 Máquinas (PCs/Notebooks)
             </button>
         </div>
     </div>
-
-    <div class="bg-ltip-dark-accent p-6 rounded-2xl shadow-2xl border border-primary">
-
-        <div id="equipamentos">
-            <h2 class="text-3xl font-bold text-ltip-success mb-6 border-b border-ltip-dark-accent pb-2">Lista de Equipamentos Gerais</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-ltip-dark-accent/50">
-                    <thead class="bg-ltip-dark-accent/80">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Tombo</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Nome</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Localização</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Data de Cadastro</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-ltip-dark-accent/50">
-                        {% for equipamento in equipamentos %}
-                        <tr class="hover:bg-ltip-dark-accent/50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-ltip-text">{{ equipamento.tombo }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ equipamento.nome }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ equipamento.localizacao }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                {% if equipamento.status == 'Em uso' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-ltip-success/20 text-ltip-success">Em uso</span>
-                                {% elif equipamento.status == 'Manutenção' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/20 text-primary">Manutenção</span>
-                                {% else %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-ltip-text/10 text-ltip-text/80">Disponível</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ equipamento.data_cadastro.strftime('%d/%m/%Y') }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-ltip-text/50">Nenhum equipamento geral cadastrado.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="maquinas" class="hidden">
-            <h2 class="text-3xl font-bold text-primary mb-6 border-b border-ltip-dark-accent pb-2">Lista de Máquinas (PCs/Notebooks)</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-ltip-dark-accent/50">
-                    <thead class="bg-ltip-dark-accent/80">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Tombo</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Nome</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Processador</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">RAM</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-ltip-text/70 uppercase tracking-wider">Localização</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-ltip-dark-accent/50">
-                        {% for maquina in maquinas %}
-                        <tr class="hover:bg-ltip-dark-accent/50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-ltip-text">{{ maquina.tombo }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ maquina.nome }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ maquina.processador }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ maquina.memoria_ram }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-ltip-text/80">{{ maquina.localizacao }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-ltip-text/50">Nenhuma máquina (PC/Notebook) cadastrada.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Função para alternar a cor ativa dos botões (USANDO AS NOVAS CORES)
-    function toggleActive(element, tabId) {
-        // Remove a cor ativa de todos os botões e aplica a cor inativa
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('bg-ltip-success', 'hover:bg-ltip-success/90', 'bg-primary', 'hover:bg-primary/90');
-            // Cor inativa: Fundo Dark Accent com texto Branco/Primary no hover
-            btn.classList.add('bg-ltip-dark-accent', 'hover:bg-primary/50');
-            btn.classList.remove('text-ltip-text');
-            btn.classList.remove('rounded-l-lg', 'rounded-r-md'); // Remove classes de arredondamento
-        });
-
-        // Aplica a cor ativa e as classes de arredondamento corretas
-        if (tabId === 'tab-equipamentos') {
-            element.classList.add('bg-ltip-success', 'hover:bg-ltip-success/90', 'rounded-l-lg');
-            element.classList.remove('bg-ltip-dark-accent', 'hover:bg-primary/50');
-        } else if (tabId === 'tab-maquinas') {
-            element.classList.add('bg-primary', 'hover:bg-primary/90', 'rounded-r-md');
-            element.classList.remove('bg-ltip-dark-accent', 'hover:bg-primary/50');
-        }
-        element.classList.add('text-ltip-text');
-    }
     
-    // Inicialização: Exibe a aba correta com base no parâmetro 'tab' na URL
-    document.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tab = urlParams.get('tab');
+    <section id="equipamentos" class="mb-12">
+        <h2 class="text-3xl font-bold text-ltip-dark-green mb-6 border-b pb-2">Equipamentos Gerais</h2>
+        
+        {% if equipamentos %}
+        <div class="bg-white shadow-2xl rounded-xl overflow-x-auto border border-ltip-dark-green/50">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-ltip-light-green/30">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Equipamento</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Finalidade</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Marca</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Modelo</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Quantidade</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Tombo</th>
+                        <th class="px-6 py-3 text-center text-xs font-bold text-ltip-dark-green uppercase tracking-wider">Imagem</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for equipamento in equipamentos %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ equipamento.name }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">{{ equipamento.functionality or 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ equipamento.brand or 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ equipamento.model or 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-lg font-bold text-ltip-dark-green">{{ equipamento.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ equipamento.tombo or 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if equipamento.image_url %}
+                                <a href="{{ url_for('uploaded_file', filename=equipamento.image_url) }}" target="_blank" class="text-xs font-medium text-primary hover:underline">Ver Imagem</a>
+                            {% else %}
+                                <span class="text-xs text-gray-400">Sem Foto</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 p-4 bg-ltip-dark-green/10 rounded-lg font-medium text-center border border-ltip-dark-green/30">Nenhum equipamento geral cadastrado no momento.</p>
+        {% endif %}
+    </section>
 
-        const tabEquipamentos = document.getElementById('equipamentos');
-        const tabMaquinas = document.getElementById('maquinas');
-        const btnEquipamentos = document.getElementById('tab-equipamentos-btn');
-        const btnMaquinas = document.getElementById('tab-maquinas-btn');
+    <section id="maquinas" class="mb-12 hidden">
+        <h2 class="text-3xl font-bold text-primary mb-6 border-b pb-2">Máquinas (PCs/Notebooks)</h2>
+        
+        {% if maquinas %}
+        <div class="bg-white shadow-2xl rounded-xl overflow-x-auto border border-primary/50">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-ltip-light-blue/30">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">ID Ativo</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">Marca/Modelo</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">Nº de Série</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">Status Formatação</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">Última Formatação</th>
+                        
+                        <th class="px-6 py-3 text-left text-xs font-bold text-primary uppercase tracking-wider">Última Limpeza Física</th>
 
-        if (tab === 'maquinas' && tabMaquinas && btnMaquinas) {
-            tabEquipamentos.classList.add('hidden');
-            tabMaquinas.classList.remove('hidden');
-            // Inicializa cores corretas (Máquinas Ativo, Equipamentos Inativo)
-            btnEquipamentos.classList.remove('bg-ltip-success', 'hover:bg-ltip-success/90');
-            btnEquipamentos.classList.add('bg-ltip-dark-accent', 'hover:bg-primary/50');
-            btnMaquinas.classList.remove('bg-ltip-dark-accent', 'hover:bg-primary/50');
-            btnMaquinas.classList.add('bg-primary', 'hover:bg-primary/90');
-        } else if (tabEquipamentos && btnEquipamentos) {
-            // Padrão: Equipamentos Ativo
-            tabEquipamentos.classList.remove('hidden');
-            tabMaquinas.classList.add('hidden');
-            // Inicializa cores corretas (Equipamentos Ativo, Máquinas Inativo)
-            btnMaquinas.classList.remove('bg-primary', 'hover:bg-primary/90');
-            btnMaquinas.classList.add('bg-ltip-dark-accent', 'hover:bg-primary/50');
-            btnEquipamentos.classList.remove('bg-ltip-dark-accent', 'hover:bg-primary/50');
-            btnEquipamentos.classList.add('bg-ltip-success', 'hover:bg-ltip-success/90');
+                        <th class="px-6 py-3 text-center text-xs font-bold text-primary uppercase tracking-wider">Imagem</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for maquina in maquinas %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ maquina.asset_id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ maquina.type.capitalize() }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ maquina.brand_model or 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ maquina.serial_number or 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if maquina.format_status == 'Formatado' %} bg-ltip-light-green text-ltip-dark-green
+                                {% elif maquina.format_status == 'Em andamento' %} bg-ltip-light-blue text-primary
+                                {% else %} bg-red-100 text-red-800
+                                {% endif %}">
+                                {{ maquina.format_status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ maquina.format_date.strftime('%d/%m/%Y') if maquina.format_date else 'N/A' }}</td>
+                        
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ maquina.physical_cleaning_date.strftime('%d/%m/%Y') if maquina.physical_cleaning_date else 'N/A' }}</td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if maquina.image_url %}
+                                <a href="{{ url_for('uploaded_file', filename=maquina.image_url) }}" target="_blank" class="text-xs font-medium text-primary hover:underline">Ver Imagem</a>
+                            {% else %}
+                                <span class="text-xs text-gray-400">Sem Foto</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 p-4 bg-ltip-light-blue/10 rounded-lg font-medium text-center border border-primary/30">Nenhuma máquina cadastrada no momento.</p>
+        {% endif %}
+    </section>
+
+    <script>
+        function toggleActive(element, tabId) {
+            // Remove active styles from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('bg-primary', 'hover:bg-primary/90', 'bg-ltip-dark-green', 'hover:bg-ltip-dark-green/90');
+                // Adiciona a cor de fundo cinza, simulando o estilo inativo da Tailwind
+                if (btn.id.includes('equipamentos')) {
+                    btn.classList.add('bg-ltip-dark-green/50', 'hover:bg-ltip-dark-green/70');
+                } else if (btn.id.includes('maquinas')) {
+                    btn.classList.add('bg-primary/50', 'hover:bg-primary/70');
+                }
+            });
+
+            // Adiciona active styles ao botão clicado
+            if (tabId === 'tab-equipamentos') {
+                element.classList.add('bg-ltip-dark-green', 'hover:bg-ltip-dark-green/90');
+                element.classList.remove('bg-ltip-dark-green/50', 'hover:bg-ltip-dark-green/70');
+            } else if (tabId === 'tab-maquinas') {
+                element.classList.add('bg-primary', 'hover:bg-primary/90');
+                element.classList.remove('bg-primary/50', 'hover:bg-primary/70');
+            }
         }
-    });
-</script>
+        
+        // Inicialização: Exibe a aba correta e aplica o estilo ativo
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+
+            const tabEquipamentos = document.getElementById('equipamentos');
+            const tabMaquinas = document.getElementById('maquinas');
+            const btnEquipamentos = document.getElementById('tab-equipamentos-btn');
+            const btnMaquinas = document.getElementById('tab-maquinas-btn');
+
+            if (tab === 'maquinas' && tabMaquinas && btnMaquinas) {
+                tabEquipamentos.classList.add('hidden');
+                tabMaquinas.classList.remove('hidden');
+                toggleActive(btnMaquinas, 'tab-maquinas');
+            } else if (tabEquipamentos && btnEquipamentos) {
+                // Padrão: Equipamentos
+                tabEquipamentos.classList.remove('hidden');
+                tabMaquinas.classList.add('hidden');
+                toggleActive(btnEquipamentos, 'tab-equipamentos');
+            }
+        });
+    </script>
+</div>
+{% endblock %}
